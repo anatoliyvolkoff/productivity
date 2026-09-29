@@ -27,10 +27,28 @@
   --warning: #ffcc00;
   --danger: #ff3b30;
 
-  --mood-red: #ff453a;
-  --mood-yellow: #ffcc00;
-  --mood-blue: #0a84ff;
-  --mood-green: #30d158;
+  /*
+   * Chart colors — validated for color-vision deficiency on these surfaces
+   * (dataviz validator, all-pairs): three series slots, a one-hue sequential
+   * ramp, and the four mood quadrants (position on the grid is their primary
+   * encoding; color is secondary).
+   */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --seq-1: #b7d3f6;
+  --seq-2: #6da7ec;
+  --seq-3: #2a78d6;
+  --seq-4: #184f95;
+  --grid: #ececf0;
+  --axis: #c7c7cc;
+  --delta-good: #006300;
+  --delta-bad: #d03b3b;
+
+  --mood-red: #e34948;
+  --mood-yellow: #eda100;
+  --mood-blue: #2a78d6;
+  --mood-green: #1baf7a;
 
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.04);
 
@@ -54,6 +72,23 @@
     --accent: #ff9f0a;
     --accent-soft: rgb(255 159 10 / 0.18);
 
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --seq-1: #184f95;
+    --seq-2: #256abf;
+    --seq-3: #3987e5;
+    --seq-4: #86b6ef;
+    --grid: #2c2c2e;
+    --axis: #48484a;
+    --delta-good: #0ca30c;
+    --delta-bad: #e66767;
+
+    --mood-red: #d03b3b;
+    --mood-yellow: #c98500;
+    --mood-blue: #3987e5;
+    --mood-green: #199e70;
+
     --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04);
 
     color-scheme: dark;
@@ -75,6 +110,23 @@
   --primary-soft: rgb(10 132 255 / 0.18);
   --accent: #ff9f0a;
   --accent-soft: rgb(255 159 10 / 0.18);
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --seq-1: #184f95;
+  --seq-2: #256abf;
+  --seq-3: #3987e5;
+  --seq-4: #86b6ef;
+  --grid: #2c2c2e;
+  --axis: #48484a;
+  --delta-good: #0ca30c;
+  --delta-bad: #e66767;
+
+  --mood-red: #d03b3b;
+  --mood-yellow: #c98500;
+  --mood-blue: #3987e5;
+  --mood-green: #199e70;
 
   --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04);
 
@@ -99,6 +151,12 @@
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-danger: var(--danger);
+  --color-series-1: var(--series-1);
+  --color-series-2: var(--series-2);
+  --color-series-3: var(--series-3);
+  --color-grid: var(--grid);
+  --color-delta-good: var(--delta-good);
+  --color-delta-bad: var(--delta-bad);
   --color-mood-red: var(--mood-red);
   --color-mood-yellow: var(--mood-yellow);
   --color-mood-blue: var(--mood-blue);
@@ -135,4 +193,96 @@ body {
 
 ::selection {
   background: var(--primary-soft);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Rendered Markdown (notes) */
+.markdown {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--fg);
+}
+.markdown > * + * {
+  margin-top: 0.75em;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  margin-top: 1.2em;
+}
+.markdown h1 {
+  font-size: 1.5em;
+}
+.markdown h2 {
+  font-size: 1.25em;
+}
+.markdown h3 {
+  font-size: 1.05em;
+}
+.markdown ul,
+.markdown ol {
+  padding-left: 1.4em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li + li {
+  margin-top: 0.25em;
+}
+.markdown a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.markdown code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--surface-3);
+  border-radius: 6px;
+  padding: 0.1em 0.35em;
+}
+.markdown pre {
+  background: var(--surface-3);
+  border-radius: 12px;
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.markdown pre code {
+  background: none;
+  padding: 0;
+}
+.markdown blockquote {
+  border-left: 3px solid var(--outline);
+  padding-left: 12px;
+  color: var(--fg-muted);
+}
+.markdown input[type="checkbox"] {
+  margin-right: 6px;
+}
+.markdown table {
+  border-collapse: collapse;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid var(--outline);
+  padding: 4px 8px;
+}
+.markdown hr {
+  border-color: var(--outline);
 }

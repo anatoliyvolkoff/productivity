@@ -1,5 +1,5 @@
 {
-  "id": "c4f150f1-a651-4850-9299-ccfda609a36b",
+  "id": "1455ee8c-c7fa-439f-b973-4a7fb7ba09e8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -25,12 +25,6 @@
           "name": "kind",
           "type": "ai_summary_kind",
           "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "input_hash": {
-          "name": "input_hash",
-          "type": "text",
           "primaryKey": false,
           "notNull": true
         },
@@ -101,6 +95,19 @@
           "primaryKey": false,
           "notNull": true
         },
+        "source": {
+          "name": "source",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'capture'"
+        },
+        "focus_session_id": {
+          "name": "focus_session_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "triaged_at": {
           "name": "triaged_at",
           "type": "timestamp with time zone",
@@ -109,8 +116,7 @@
         },
         "result_type": {
           "name": "result_type",
-          "type": "entity_type",
-          "typeSchema": "public",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -135,7 +141,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "braindump_items_focus_session_id_focus_sessions_id_fk": {
+          "name": "braindump_items_focus_session_id_focus_sessions_id_fk",
+          "tableFrom": "braindump_items",
+          "tableTo": "focus_sessions",
+          "columnsFrom": [
+            "focus_session_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -230,15 +250,15 @@
           "notNull": true,
           "default": false
         },
-        "etag": {
-          "name": "etag",
+        "html_link": {
+          "name": "html_link",
           "type": "text",
           "primaryKey": false,
           "notNull": false
         },
-        "deleted_at": {
-          "name": "deleted_at",
-          "type": "timestamp with time zone",
+        "etag": {
+          "name": "etag",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -316,12 +336,12 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.calendar_sync_state": {
-      "name": "calendar_sync_state",
+    "public.calendars": {
+      "name": "calendars",
       "schema": "",
       "columns": {
-        "calendar_id": {
-          "name": "calendar_id",
+        "id": {
+          "name": "id",
           "type": "text",
           "primaryKey": true,
           "notNull": true
@@ -330,7 +350,7 @@
           "name": "summary",
           "type": "text",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "color": {
           "name": "color",
@@ -338,18 +358,26 @@
           "primaryKey": false,
           "notNull": false
         },
+        "is_primary": {
+          "name": "is_primary",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "can_write": {
+          "name": "can_write",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
         "enabled": {
           "name": "enabled",
           "type": "boolean",
           "primaryKey": false,
           "notNull": true,
           "default": true
-        },
-        "sync_token": {
-          "name": "sync_token",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
         },
         "last_synced_at": {
           "name": "last_synced_at",
@@ -361,277 +389,6 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.daily_metrics": {
-      "name": "daily_metrics",
-      "schema": "",
-      "columns": {
-        "date": {
-          "name": "date",
-          "type": "date",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "focus_min": {
-          "name": "focus_min",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "deep_ratio": {
-          "name": "deep_ratio",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "tasks_done": {
-          "name": "tasks_done",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "mits_done": {
-          "name": "mits_done",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
-        "habit_pct": {
-          "name": "habit_pct",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sleep_min": {
-          "name": "sleep_min",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sleep_debt_min": {
-          "name": "sleep_debt_min",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "sleep_regularity": {
-          "name": "sleep_regularity",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mood_valence_avg": {
-          "name": "mood_valence_avg",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "mood_energy_avg": {
-          "name": "mood_energy_avg",
-          "type": "real",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "energy_curve": {
-          "name": "energy_curve",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "computed_at": {
-          "name": "computed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.dashboard_layouts": {
-      "name": "dashboard_layouts",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "layout": {
-          "name": "layout",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "is_default": {
-          "name": "is_default",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "updated_at": {
-          "name": "updated_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.distractions": {
-      "name": "distractions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "focus_session_id": {
-          "name": "focus_session_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "text": {
-          "name": "text",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "distractions_focus_session_id_focus_sessions_id_fk": {
-          "name": "distractions_focus_session_id_focus_sessions_id_fk",
-          "tableFrom": "distractions",
-          "tableTo": "focus_sessions",
-          "columnsFrom": [
-            "focus_session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.entity_tags": {
-      "name": "entity_tags",
-      "schema": "",
-      "columns": {
-        "tag_id": {
-          "name": "tag_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "entity_type": {
-          "name": "entity_type",
-          "type": "entity_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "entity_id": {
-          "name": "entity_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "entity_tags_entity_type_entity_id_index": {
-          "name": "entity_tags_entity_type_entity_id_index",
-          "columns": [
-            {
-              "expression": "entity_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "entity_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "entity_tags_tag_id_tags_id_fk": {
-          "name": "entity_tags_tag_id_tags_id_fk",
-          "tableFrom": "entity_tags",
-          "tableTo": "tags",
-          "columnsFrom": [
-            "tag_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {
-        "entity_tags_tag_id_entity_type_entity_id_pk": {
-          "name": "entity_tags_tag_id_entity_type_entity_id_pk",
-          "columns": [
-            "tag_id",
-            "entity_type",
-            "entity_id"
-          ]
-        }
-      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -660,7 +417,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'pomodoro_25_5'"
+          "default": "'pomodoro'"
         },
         "planned_min": {
           "name": "planned_min",
@@ -668,21 +425,42 @@
           "primaryKey": false,
           "notNull": true
         },
-        "actual_min": {
-          "name": "actual_min",
+        "break_min": {
+          "name": "break_min",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": 5
         },
         "started_at": {
           "name": "started_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "now()"
         },
         "ended_at": {
           "name": "ended_at",
           "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paused_at": {
+          "name": "paused_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "paused_sec": {
+          "name": "paused_sec",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "actual_min": {
+          "name": "actual_min",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -692,18 +470,18 @@
           "primaryKey": false,
           "notNull": false
         },
-        "interruptions": {
-          "name": "interruptions",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        },
         "notes": {
           "name": "notes",
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {
@@ -767,6 +545,14 @@
           "primaryKey": false,
           "notNull": false
         },
+        "horizon": {
+          "name": "horizon",
+          "type": "goal_horizon",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'quarter'"
+        },
         "type": {
           "name": "type",
           "type": "goal_type",
@@ -785,7 +571,7 @@
           "name": "current_value",
           "type": "real",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": 0
         },
         "unit": {
@@ -807,7 +593,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'on_track'"
+          "default": "'active'"
         },
         "start_date": {
           "name": "start_date",
@@ -827,15 +613,28 @@
           "primaryKey": false,
           "notNull": false
         },
-        "review_cadence": {
-          "name": "review_cadence",
+        "color": {
+          "name": "color",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'weekly'"
+          "notNull": false
         },
-        "archived_at": {
-          "name": "archived_at",
+        "tags": {
+          "name": "tags",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "completed_at": {
+          "name": "completed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false
@@ -907,14 +706,6 @@
           "notNull": true,
           "default": 1
         },
-        "source": {
-          "name": "source",
-          "type": "log_source",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'manual'"
-        },
         "note": {
           "name": "note",
           "type": "text",
@@ -930,8 +721,8 @@
         }
       },
       "indexes": {
-        "habit_logs_habit_id_date_source_index": {
-          "name": "habit_logs_habit_id_date_source_index",
+        "habit_logs_habit_id_date_index": {
+          "name": "habit_logs_habit_id_date_index",
           "columns": [
             {
               "expression": "habit_id",
@@ -941,12 +732,6 @@
             },
             {
               "expression": "date",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "source",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1042,6 +827,14 @@
           "primaryKey": false,
           "notNull": false
         },
+        "auto_source": {
+          "name": "auto_source",
+          "type": "habit_auto_source",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'none'"
+        },
         "priority": {
           "name": "priority",
           "type": "smallint",
@@ -1061,6 +854,20 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "tags": {
+          "name": "tags",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
+        "sort_order": {
+          "name": "sort_order",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
         },
         "archived_at": {
           "name": "archived_at",
@@ -1118,102 +925,55 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.links": {
-      "name": "links",
+    "public.integrations": {
+      "name": "integrations",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
+        "provider": {
+          "name": "provider",
+          "type": "text",
           "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "from_type": {
-          "name": "from_type",
-          "type": "entity_type",
-          "typeSchema": "public",
-          "primaryKey": false,
           "notNull": true
         },
-        "from_id": {
-          "name": "from_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "to_type": {
-          "name": "to_type",
-          "type": "entity_type",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "to_id": {
-          "name": "to_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "kind": {
-          "name": "kind",
+        "account_email": {
+          "name": "account_email",
           "type": "text",
           "primaryKey": false,
-          "notNull": true,
-          "default": "'related'"
+          "notNull": false
         },
-        "created_at": {
-          "name": "created_at",
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
           "default": "now()"
         }
       },
-      "indexes": {
-        "links_from_type_from_id_index": {
-          "name": "links_from_type_from_id_index",
-          "columns": [
-            {
-              "expression": "from_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "from_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        },
-        "links_to_type_to_id_index": {
-          "name": "links_to_type_to_id_index",
-          "columns": [
-            {
-              "expression": "to_type",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "to_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
+      "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
@@ -1262,6 +1022,13 @@
           "primaryKey": false,
           "notNull": true,
           "default": 0
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {},
@@ -1341,17 +1108,18 @@
           "primaryKey": false,
           "notNull": false
         },
-        "weather_snapshot": {
-          "name": "weather_snapshot",
+        "weather": {
+          "name": "weather",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "strategy_used": {
-          "name": "strategy_used",
-          "type": "text",
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
           "primaryKey": false,
-          "notNull": false
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {
@@ -1409,6 +1177,20 @@
           "primaryKey": false,
           "notNull": false
         },
+        "pinned": {
+          "name": "pinned",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "tags": {
+          "name": "tags",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
+        },
         "created_at": {
           "name": "created_at",
           "type": "timestamp with time zone",
@@ -1464,42 +1246,35 @@
           "type": "text",
           "primaryKey": false,
           "notNull": true,
-          "default": "'Me'"
-        },
-        "timezone": {
-          "name": "timezone",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'UTC'"
-        },
-        "chronotype": {
-          "name": "chronotype",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'intermediate'"
+          "default": "''"
         },
         "wake_target": {
           "name": "wake_target",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": "'07:00'"
         },
         "sleep_target_min": {
           "name": "sleep_target_min",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": 480
         },
         "focus_target_min": {
           "name": "focus_target_min",
           "type": "integer",
           "primaryKey": false,
-          "notNull": false,
+          "notNull": true,
           "default": 240
+        },
+        "chronotype": {
+          "name": "chronotype",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'auto'"
         },
         "latitude": {
           "name": "latitude",
@@ -1513,12 +1288,17 @@
           "primaryKey": false,
           "notNull": false
         },
-        "settings": {
-          "name": "settings",
-          "type": "jsonb",
+        "location_name": {
+          "name": "location_name",
+          "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'{}'::jsonb"
+          "notNull": false
+        },
+        "google_calendar_id": {
+          "name": "google_calendar_id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "created_at": {
           "name": "created_at",
@@ -1566,23 +1346,11 @@
           "primaryKey": false,
           "notNull": true
         },
-        "sleep_at": {
-          "name": "sleep_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
         "wake_at": {
           "name": "wake_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
-        },
-        "out_of_bed_at": {
-          "name": "out_of_bed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
         },
         "latency_min": {
           "name": "latency_min",
@@ -1614,16 +1382,15 @@
           "primaryKey": false,
           "notNull": false
         },
-        "source": {
-          "name": "source",
-          "type": "log_source",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "'manual'"
-        },
         "created_at": {
           "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updated_at": {
+          "name": "updated_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true,
@@ -1650,28 +1417,15 @@
       "name": "tags",
       "schema": "",
       "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
         "name": {
           "name": "name",
           "type": "text",
-          "primaryKey": false,
+          "primaryKey": true,
           "notNull": true
         },
         "color": {
           "name": "color",
           "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "parent_id": {
-          "name": "parent_id",
-          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -1684,21 +1438,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "tags_parent_id_tags_id_fk": {
-          "name": "tags_parent_id_tags_id_fk",
-          "tableFrom": "tags",
-          "tableTo": "tags",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1734,7 +1474,7 @@
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
-          "default": "'inbox'"
+          "default": "'next'"
         },
         "priority": {
           "name": "priority",
@@ -1742,20 +1482,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": 3
-        },
-        "urgent": {
-          "name": "urgent",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
-        },
-        "important": {
-          "name": "important",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true,
-          "default": false
         },
         "effort_min": {
           "name": "effort_min",
@@ -1770,9 +1496,9 @@
           "primaryKey": false,
           "notNull": false
         },
-        "due_at": {
-          "name": "due_at",
-          "type": "timestamp with time zone",
+        "due_date": {
+          "name": "due_date",
+          "type": "date",
           "primaryKey": false,
           "notNull": false
         },
@@ -1793,6 +1519,13 @@
           "type": "uuid",
           "primaryKey": false,
           "notNull": false
+        },
+        "tags": {
+          "name": "tags",
+          "type": "text[]",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'{}'"
         },
         "sort_order": {
           "name": "sort_order",
@@ -1843,6 +1576,21 @@
           "columns": [
             {
               "expression": "mit_on",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "tasks_due_date_index": {
+          "name": "tasks_due_date_index",
+          "columns": [
+            {
+              "expression": "due_date",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1920,12 +1668,6 @@
           "primaryKey": false,
           "notNull": false
         },
-        "goal_id": {
-          "name": "goal_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "focus_session_id": {
           "name": "focus_session_id",
           "type": "uuid",
@@ -1946,7 +1688,7 @@
         },
         "source": {
           "name": "source",
-          "type": "log_source",
+          "type": "time_entry_source",
           "typeSchema": "public",
           "primaryKey": false,
           "notNull": true,
@@ -1964,6 +1706,13 @@
           "type": "text",
           "primaryKey": false,
           "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
         }
       },
       "indexes": {
@@ -1972,6 +1721,21 @@
           "columns": [
             {
               "expression": "started_at",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        },
+        "time_entries_task_id_index": {
+          "name": "time_entries_task_id_index",
+          "columns": [
+            {
+              "expression": "task_id",
               "isExpression": false,
               "asc": true,
               "nulls": "last"
@@ -1997,19 +1761,6 @@
           "onDelete": "set null",
           "onUpdate": "no action"
         },
-        "time_entries_goal_id_goals_id_fk": {
-          "name": "time_entries_goal_id_goals_id_fk",
-          "tableFrom": "time_entries",
-          "tableTo": "goals",
-          "columnsFrom": [
-            "goal_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        },
         "time_entries_focus_session_id_focus_sessions_id_fk": {
           "name": "time_entries_focus_session_id_focus_sessions_id_fk",
           "tableFrom": "time_entries",
@@ -2020,57 +1771,11 @@
           "columnsTo": [
             "id"
           ],
-          "onDelete": "set null",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.weather_cache": {
-      "name": "weather_cache",
-      "schema": "",
-      "columns": {
-        "date": {
-          "name": "date",
-          "type": "date",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hour": {
-          "name": "hour",
-          "type": "smallint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "data": {
-          "name": "data",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "fetched_at": {
-          "name": "fetched_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {
-        "weather_cache_date_hour_pk": {
-          "name": "weather_cache_date_hour_pk",
-          "columns": [
-            "date",
-            "hour"
-          ]
-        }
-      },
       "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
@@ -2084,8 +1789,7 @@
       "values": [
         "morning",
         "evening",
-        "weekly",
-        "triage"
+        "weekly"
       ]
     },
     "public.calendar_source": {
@@ -2104,49 +1808,51 @@
         "high"
       ]
     },
-    "public.entity_type": {
-      "name": "entity_type",
-      "schema": "public",
-      "values": [
-        "task",
-        "habit",
-        "goal",
-        "note",
-        "time_entry",
-        "focus_session",
-        "mood_entry",
-        "calendar_event",
-        "braindump_item"
-      ]
-    },
     "public.focus_preset": {
       "name": "focus_preset",
       "schema": "public",
       "values": [
-        "pomodoro_25_5",
-        "d52_17",
-        "ultradian_90_20",
+        "pomodoro",
+        "d52",
+        "ultradian",
         "custom"
+      ]
+    },
+    "public.goal_horizon": {
+      "name": "goal_horizon",
+      "schema": "public",
+      "values": [
+        "vision",
+        "year",
+        "quarter",
+        "month"
       ]
     },
     "public.goal_status": {
       "name": "goal_status",
       "schema": "public",
       "values": [
-        "on_track",
-        "at_risk",
-        "off_track",
-        "done",
-        "paused"
+        "active",
+        "paused",
+        "done"
       ]
     },
     "public.goal_type": {
       "name": "goal_type",
       "schema": "public",
       "values": [
-        "numeric",
         "milestone",
+        "numeric",
         "habit"
+      ]
+    },
+    "public.habit_auto_source": {
+      "name": "habit_auto_source",
+      "schema": "public",
+      "values": [
+        "none",
+        "focus_minutes",
+        "tasks_done"
       ]
     },
     "public.habit_type": {
@@ -2156,17 +1862,6 @@
         "boolean",
         "count",
         "duration"
-      ]
-    },
-    "public.log_source": {
-      "name": "log_source",
-      "schema": "public",
-      "values": [
-        "manual",
-        "focus",
-        "timer",
-        "import",
-        "ai"
       ]
     },
     "public.mood_quadrant": {
@@ -2189,6 +1884,15 @@
         "waiting",
         "done",
         "dropped"
+      ]
+    },
+    "public.time_entry_source": {
+      "name": "time_entry_source",
+      "schema": "public",
+      "values": [
+        "timer",
+        "focus",
+        "manual"
       ]
     }
   },

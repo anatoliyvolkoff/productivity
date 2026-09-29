@@ -1,9 +1,18 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { connection } from "next/server";
 import { CommandPalette } from "@/components/shell/CommandPalette";
+import { DatabaseError } from "@/components/shell/DatabaseError";
+import { KeyboardShortcuts } from "@/components/shell/KeyboardShortcuts";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { themeInitScript } from "@/components/shell/ThemeToggle";
 import { TopBar } from "@/components/shell/TopBar";
+import { TaskEditorProvider } from "@/components/tasks/TaskEditor";
+import { Toaster } from "@/components/ui/toast";
+import { getConnection } from "@/lib/db";
+import { getRunningSession, getRunningTimer } from "@/lib/services/focus";
+import { goalOptions } from "@/lib/services/goals";
+import { listTags } from "@/lib/services/tags";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin", "cyrillic"] });
@@ -14,20 +23,45 @@ export const metadata: Metadata = {
   description: "Personal dashboard for focus, time, habits, goals, mood and sleep.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
-  return (
-    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
-      <body className="flex min-w-[1280px]">
+/** Data the app shell needs; a database failure is returned, not thrown, so it can be shown. */
+async function loadShell() {
+  try {
+    await getConnection();
+    const [goals, tags, session, timer] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer()]);
+    return { ok: true as const, goals, tags: tags.map((t) => t.name), session, timer };
+  } catch (error) {
+    return { ok: false as const, error: error instanceof Error ? error.message : String(error) };
+  }
+}
+
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Everything here is live personal data — render per request, never at build time.
+  await connection();
+
+  const shell = await loadShell();
+  const body =
+    !shell.ok ? (
+      <DatabaseError message={shell.error} usingSupabase={Boolean(process.env.DATABASE_URL?.trim())} />
+    ) : (
+      <TaskEditorProvider goals={shell.goals} tags={shell.tags}>
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
-          <TopBar />
+          <TopBar session={shell.session} timer={shell.timer} />
           <main className="flex-1 px-8 py-6">{children}</main>
         </div>
         <CommandPalette />
-      </body>
+        <KeyboardShortcuts />
+        <Toaster />
+      </TaskEditorProvider>
+    );
+
+  return (
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+      <head>
+        {/* Applies the saved theme before first paint (Next.js "preventing flash before hydration" pattern). */}
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body className="flex min-w-[1280px]">{body}</body>
     </html>
   );
 }
