@@ -44,5 +44,5 @@ export const NAV_ITEMS: NavItem[] = [
   { slug: "settings", href: "/settings", label: "Settings", icon: Settings, phase: 0, description: "Theme, connections and data." },
 ];
 
-const BUILT = new Set(["", "clock", "tasks", "braindump", "focus", "notes"]);
+const BUILT = new Set(["", "clock", "tasks", "braindump", "focus", "notes", "today", "calendar", "habits", "goals"]);
 export const PLACEHOLDER_SECTIONS = NAV_ITEMS.filter((i) => !BUILT.has(i.slug));

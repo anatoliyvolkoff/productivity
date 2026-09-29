@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { connection } from "next/server";
+import { GoogleAutoSync } from "@/components/calendar/GoogleAutoSync";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { DatabaseError } from "@/components/shell/DatabaseError";
 import { KeyboardShortcuts } from "@/components/shell/KeyboardShortcuts";
@@ -12,6 +13,7 @@ import { Toaster } from "@/components/ui/toast";
 import { getConnection } from "@/lib/db";
 import { getRunningSession, getRunningTimer } from "@/lib/services/focus";
 import { goalOptions } from "@/lib/services/goals";
+import { isGoogleConnected } from "@/lib/services/google";
 import { listTags } from "@/lib/services/tags";
 import "./globals.css";
 
@@ -27,8 +29,8 @@ export const metadata: Metadata = {
 async function loadShell() {
   try {
     await getConnection();
-    const [goals, tags, session, timer] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer()]);
-    return { ok: true as const, goals, tags: tags.map((t) => t.name), session, timer };
+    const [goals, tags, session, timer, google] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer(), isGoogleConnected()]);
+    return { ok: true as const, goals, tags: tags.map((t) => t.name), session, timer, google };
   } catch (error) {
     return { ok: false as const, error: error instanceof Error ? error.message : String(error) };
   }
@@ -52,6 +54,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <CommandPalette />
         <KeyboardShortcuts />
         <Toaster />
+        {shell.google && <GoogleAutoSync />}
       </TaskEditorProvider>
     );
 

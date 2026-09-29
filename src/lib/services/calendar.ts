@@ -5,13 +5,26 @@ import { calendarEvents, calendars, tasks, type CalendarEvent } from "@/lib/db/s
 import { addDaysISO, fromISODate, minuteOfDay, type ISODate } from "@/lib/domain/dates";
 import { deleteGoogleEvent, isCalendarWritable, isGoogleConnected, pushGoogleEvent } from "./google";
 
-export type EventRow = CalendarEvent & { taskTitle: string | null; calendarColor: string | null; calendarName: string | null };
+export type EventRow = CalendarEvent & {
+  taskTitle: string | null;
+  calendarColor: string | null;
+  calendarName: string | null;
+  /** False for events on read-only Google calendars (holidays, shared calendars). */
+  writable: boolean;
+};
 
 /** Events overlapping [from, to). Google events only from enabled calendars. */
 export async function listEvents(from: Date, to: Date): Promise<EventRow[]> {
   const db = await getDb();
   const rows = await db
-    .select({ event: calendarEvents, taskTitle: tasks.title, calendarColor: calendars.color, calendarName: calendars.summary, enabled: calendars.enabled })
+    .select({
+      event: calendarEvents,
+      taskTitle: tasks.title,
+      calendarColor: calendars.color,
+      calendarName: calendars.summary,
+      enabled: calendars.enabled,
+      canWrite: calendars.canWrite,
+    })
     .from(calendarEvents)
     .leftJoin(tasks, eq(calendarEvents.taskId, tasks.id))
     .leftJoin(calendars, eq(calendarEvents.calendarId, calendars.id))
@@ -19,7 +32,13 @@ export async function listEvents(from: Date, to: Date): Promise<EventRow[]> {
     .orderBy(asc(calendarEvents.startAt));
   return rows
     .filter((r) => r.enabled !== false)
-    .map((r) => ({ ...r.event, taskTitle: r.taskTitle, calendarColor: r.calendarColor, calendarName: r.calendarName }));
+    .map((r) => ({
+      ...r.event,
+      taskTitle: r.taskTitle,
+      calendarColor: r.calendarColor,
+      calendarName: r.calendarName,
+      writable: r.event.source === "local" || r.canWrite !== false,
+    }));
 }
 
 export async function eventsForDay(date: ISODate): Promise<EventRow[]> {

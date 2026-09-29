@@ -12,7 +12,7 @@ export async function addHabit(input: HabitInput) {
 }
 
 export async function saveHabit(id: string, patch: Partial<HabitInput>) {
-  const result = await attempt(() => updateHabit(id, patch));
+  const result = await attempt(async () => (await updateHabit(id, patch)).id);
   refresh();
   return result;
 }

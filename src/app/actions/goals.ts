@@ -22,7 +22,7 @@ export async function addGoal(input: GoalInput) {
 }
 
 export async function saveGoal(id: string, patch: Partial<GoalInput> & { status?: Goal["status"]; currentValue?: number }) {
-  const result = await attempt(() => updateGoal(id, patch));
+  const result = await attempt(async () => (await updateGoal(id, patch)).id);
   refresh();
   return result;
 }
