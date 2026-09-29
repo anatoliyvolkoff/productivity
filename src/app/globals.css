@@ -1,0 +1,138 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens — "Google × Apple".
+ * Neutral monochrome base (white / black / greys) with bright accents:
+ * blue is the primary action color, orange the secondary/energy color.
+ * Mood quadrant colors follow the How We Feel convention.
+ */
+:root {
+  --bg: #f5f5f7;
+  --surface: #ffffff;
+  --surface-2: #fafafa;
+  --surface-3: #f0f0f2;
+  --glass: rgb(255 255 255 / 0.72);
+  --fg: #0a0a0a;
+  --fg-muted: #6e6e73;
+  --fg-subtle: #a1a1a6;
+  --outline: #e5e5ea;
+
+  --primary: #007aff;
+  --primary-soft: rgb(0 122 255 / 0.12);
+  --on-primary: #ffffff;
+  --accent: #ff7a00;
+  --accent-soft: rgb(255 122 0 / 0.12);
+
+  --success: #34c759;
+  --warning: #ffcc00;
+  --danger: #ff3b30;
+
+  --mood-red: #ff453a;
+  --mood-yellow: #ffcc00;
+  --mood-blue: #0a84ff;
+  --mood-green: #30d158;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.04), 0 4px 16px rgb(0 0 0 / 0.04);
+
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000000;
+    --surface: #1c1c1e;
+    --surface-2: #232325;
+    --surface-3: #2c2c2e;
+    --glass: rgb(28 28 30 / 0.72);
+    --fg: #f5f5f7;
+    --fg-muted: #98989d;
+    --fg-subtle: #636366;
+    --outline: #38383a;
+
+    --primary: #0a84ff;
+    --primary-soft: rgb(10 132 255 / 0.18);
+    --accent: #ff9f0a;
+    --accent-soft: rgb(255 159 10 / 0.18);
+
+    --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04);
+
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #000000;
+  --surface: #1c1c1e;
+  --surface-2: #232325;
+  --surface-3: #2c2c2e;
+  --glass: rgb(28 28 30 / 0.72);
+  --fg: #f5f5f7;
+  --fg-muted: #98989d;
+  --fg-subtle: #636366;
+  --outline: #38383a;
+
+  --primary: #0a84ff;
+  --primary-soft: rgb(10 132 255 / 0.18);
+  --accent: #ff9f0a;
+  --accent-soft: rgb(255 159 10 / 0.18);
+
+  --shadow-card: 0 0 0 1px rgb(255 255 255 / 0.04);
+
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-glass: var(--glass);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-outline: var(--outline);
+  --color-primary: var(--primary);
+  --color-primary-soft: var(--primary-soft);
+  --color-on-primary: var(--on-primary);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-mood-red: var(--mood-red);
+  --color-mood-yellow: var(--mood-yellow);
+  --color-mood-blue: var(--mood-blue);
+  --color-mood-green: var(--mood-green);
+
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "SF Mono", ui-monospace, monospace;
+
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+
+  --shadow-card: var(--shadow-card);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv11", "ss01";
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+::selection {
+  background: var(--primary-soft);
+}

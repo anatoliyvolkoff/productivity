@@ -67,7 +67,7 @@ the next event, and the clock.
 | State | **TanStack Query** (server state) + **Zustand** (UI state, timers) | |
 | Database | **PostgreSQL** via **Drizzle ORM** — hosted on Supabase/Neon, *or* local Postgres in Docker | Typed schema, migrations, a relational fit for linked entities |
 | DB connector | A `DataStore` interface with a Postgres implementation first, and SQLite (local-only / offline) as a drop-in option | This is the "database connector": the storage backend can be swapped without touching the rest of the app |
-| Auth | Single user: **Auth.js** with Google provider (this also grants the Calendar scopes) | |
+| Auth | None for the app (runs on localhost). Google OAuth only for Calendar access | |
 | Calendar | **Google Calendar API** (OAuth, incremental sync with `syncToken`, push webhooks) + my own events table | Hybrid, see §4.5 |
 | Weather | **Open-Meteo** (free, no key) | Forecast, UV, sunrise/sunset, air quality |
 | AI | **Claude API** (Anthropic SDK), structured JSON output | Daily brief, triage, weekly review |
@@ -126,7 +126,7 @@ A bento grid of widgets. Each widget is a small version of a full page. Default 
 - Views: day, week, and month. The day view is shared with the timeline (events, time blocks, tracked
   time, focus sessions, and mood/sleep markers all on one axis).
 - **Time-blocking:** drag a task onto the calendar to create a block, which is optionally pushed to Google.
-- Sync: OAuth, incremental `syncToken` pulls plus push notifications (a webhook channel), and
+- Sync: OAuth, incremental `syncToken` pulls (polling, since the app runs on localhost), and
   conflict resolution by `updated` timestamp.
 - Local-only blocks (for example "Deep work") can stay private if I choose.
 
@@ -364,7 +364,7 @@ docs/PLAN.md
 
 | Phase | Deliverable |
 |---|---|
-| **0. Foundation** (week 1) | Next.js + Tailwind + tokens (Google/Apple theme, light and dark), app shell (rail, sidebar, ⌘K), Drizzle schema + Postgres, DataStore, single-user auth |
+| **0. Foundation** (week 1) | Next.js + Tailwind + tokens (Google/Apple theme, light and dark), app shell (rail, sidebar, ⌘K), Drizzle schema + Postgres, DataStore |
 | **1. Core loop** (weeks 2–3) | Tasks (priority, tags, MITs), brain dump, focus timer + time tracking, big clock/countdown, basic dashboard grid |
 | **2. Calendar** (week 4) | Local calendar (day/week/month), timeline view, time-blocking by drag, Google Calendar two-way sync |
 | **3. Habits & goals** (weeks 5–6) | Habits (types, cues, never-miss-twice), goals hierarchy, auto-progress from tasks/habits/time, live rings and heatmaps |
@@ -376,13 +376,28 @@ Each phase ends with a usable app, so I can use it every day from Phase 1 on.
 
 ---
 
-## 10. Open Decisions
+## 10. Decisions (confirmed)
 
-1. **Database hosting:** Supabase/Neon (cloud, usable from any machine) *or* local Postgres/SQLite (fully
-   private, one machine)? → *Recommended: Supabase, with the SQLite connector as a fallback.*
-2. **Calendar:** hybrid two-way sync (recommended), read-only Google, or local only?
-3. **Sleep data source:** manual only at first, or which wearable/phone (Apple Health, Oura, Whoop,
-   Google Health Connect)?
-4. **Deployment:** Vercel (easiest), a home server, or localhost only?
-5. **AI privacy:** is it OK to send journal and mood notes to the AI, or only aggregated metrics?
-6. **Theme seed color** and whether the default is light or dark.
+| # | Question | Decision | Consequences |
+|---|---|---|---|
+| 1 | Database hosting | **Supabase** (cloud Postgres) | Drizzle connects via the pooler (`prepare: false`). Migrations live in `drizzle/`. The SQLite connector stays an optional fallback. |
+| 2 | Calendar | **Google Calendar, two-way sync** | Auth.js/Google OAuth with a `localhost` redirect. Because the app runs locally, Google push webhooks can't reach it, so sync **polls** with `syncToken` every 1–2 min while the app is open and on focus/visibility change. |
+| 3 | Sleep data | **Manual entry** | Quick morning form (bed/wake times, quality, factors). Imports are postponed. |
+| 4 | Deployment | **Own computer** (`localhost`) | No login screen is needed. The only OAuth is for Google Calendar. Cron jobs run in-process (nightly rollup, morning brief). An optional Tauri desktop wrapper can come later. |
+| 5 | AI privacy | **Everything** may be sent to the AI | The brief and summaries use full context: tasks, notes, journal, mood notes and sleep. |
+| 6 | Theme | **Monochrome (white / black / greys) with bright accents: blue primary, orange secondary** | Light: `#F5F5F7` background, white cards. Dark: pure black background, `#1C1C1E` cards. Blue `#007AFF`/`#0A84FF` for actions, orange `#FF7A00`/`#FF9F0A` for energy and highlights. Follows system mode, with a manual toggle. |
+
+---
+
+## 11. Progress
+
+- [x] **Phase 0 — Foundation:** Next.js 16 + Tailwind v4 tokens (light and dark), app shell
+      (sidebar, top bar, ⌘K palette, theme toggle), bento dashboard with placeholders, full-screen big
+      clock with a countdown, the full Drizzle schema + initial migration, and the DataStore connector
+      (Postgres/Supabase).
+- [ ] Phase 1 — Core loop
+- [ ] Phase 2 — Calendar
+- [ ] Phase 3 — Habits & goals
+- [ ] Phase 4 — Wellbeing
+- [ ] Phase 5 — Intelligence
+- [ ] Phase 6 — Polish
