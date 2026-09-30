@@ -50,7 +50,7 @@ async function openPostgres(url: string): Promise<Connection> {
   }
 
   // `prepare: false` is required by Supabase's transaction pooler (port 6543).
-  const client = postgres(url, { prepare: false, max: 5, onnotice: () => {} });
+  const client = postgres(url, { prepare: false, max: Number(process.env.DATABASE_POOL_MAX) || 5, onnotice: () => {} });
   let location = "Postgres";
   try {
     location = new URL(url).hostname;

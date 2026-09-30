@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 import { attempt } from "@/lib/actions";
+import { importAll, type Backup } from "@/lib/services/backup";
 import { updateProfile, type ProfilePatch } from "@/lib/services/profile";
 import { deleteTag, renameTag, setTagColor } from "@/lib/services/tags";
 import { searchPlaces } from "@/lib/services/weather";
@@ -30,6 +31,20 @@ export async function renameTagAction(from: string, to: string) {
 
 export async function removeTag(name: string) {
   const result = await attempt(() => deleteTag(name));
+  refresh();
+  return result;
+}
+
+export async function importBackup(json: string) {
+  const result = await attempt(async () => {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      throw new Error("That file isn't valid JSON.");
+    }
+    return importAll(parsed as Backup);
+  });
   refresh();
   return result;
 }

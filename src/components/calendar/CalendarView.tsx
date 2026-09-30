@@ -160,7 +160,7 @@ export function CalendarView({
             ) : !google.connected ? (
               <div className="flex flex-col items-start gap-2">
                 <p className="text-[13px] text-fg-muted">Two-way sync: your events show up here, and time blocks you create go to Google.</p>
-                {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- OAuth needs a full-page navigation to the route handler */}
+                { }
                 <a href="/api/google/connect" className={buttonClass("primary", "sm")}>
                   Connect Google Calendar
                 </a>

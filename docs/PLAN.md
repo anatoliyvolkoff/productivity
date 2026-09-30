@@ -391,13 +391,28 @@ Each phase ends with a usable app, so I can use it every day from Phase 1 on.
 
 ## 11. Progress
 
-- [x] **Phase 0 — Foundation:** Next.js 16 + Tailwind v4 tokens (light and dark), app shell
-      (sidebar, top bar, ⌘K palette, theme toggle), bento dashboard with placeholders, full-screen big
-      clock with a countdown, the full Drizzle schema + initial migration, and the DataStore connector
-      (Postgres/Supabase).
-- [ ] Phase 1 — Core loop
-- [ ] Phase 2 — Calendar
-- [ ] Phase 3 — Habits & goals
-- [ ] Phase 4 — Wellbeing
-- [ ] Phase 5 — Intelligence
-- [ ] Phase 6 — Polish
+All phases are built. Where the implementation differs from the plan above, this section wins.
+
+- [x] **Phase 0 — Foundation:** Next.js 16, Tailwind v4 tokens (light/dark), app shell, ⌘K, schema, connector.
+- [x] **Phase 1 — Core loop:** tasks (quick add, priorities, tags, top 3, Eisenhower), brain dump, focus timer, time tracking, notes, Today.
+- [x] **Phase 2 — Calendar:** day/week/month, time-block suggestions, Google two-way sync.
+- [x] **Phase 3 — Habits & goals:** streaks (never miss twice), strength, 66-day formation, heatmaps, stacks; goal hierarchy with pace.
+- [x] **Phase 4 — Wellbeing:** mood check-ins, sleep log and metrics, weather, energy curve.
+- [x] **Phase 5 — Intelligence:** insights, correlations, rule-based and AI briefs, evening summary, weekly review, AI triage.
+- [x] **Phase 6 — Polish & deploy:** settings, export/import, shortcuts, notifications, production build, end-to-end tests.
+
+### Changes from the original plan
+
+- **Database connector:** instead of a repository interface with a SQLite fallback, the connector picks the Postgres driver: Supabase via `DATABASE_URL`, otherwise an **embedded Postgres (PGlite)** in `.data/`. Same schema and migrations on both; migrations run automatically.
+- **Tags** are text arrays on each entity (plus a `tags` table for colors) rather than a join table.
+- **Rollups** (`daily_metrics`) are computed on demand — a single person's data is small enough.
+- **Google sync** pulls a rolling window (30 days back, 90 ahead) with recurring events expanded, reconciling deletions, instead of `syncToken` + webhooks (webhooks can't reach localhost).
+- **Notes** use a Markdown editor with preview instead of TipTap.
+- **Dashboard** has a fixed, designed layout rather than drag-and-drop widgets.
+- **Daily brief** works without an API key (rule-based); the AI version uses Claude with structured output and a server-side fallback on refusals.
+- **Charts** are hand-built SVG with a palette validated for color-vision deficiency in both themes; every chart has hover details, and the main ones have a table view.
+
+### Verification
+
+- 58 unit and integration tests (domain logic; every service against a real in-memory Postgres; Google sync against a mocked Google API; backup round-trip).
+- 16 end-to-end browser flows against the production build, on both the embedded database and the Postgres/Supabase driver.

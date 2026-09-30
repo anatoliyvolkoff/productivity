@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { connection } from "next/server";
 import { GoogleAutoSync } from "@/components/calendar/GoogleAutoSync";
 import { CommandPalette } from "@/components/shell/CommandPalette";
@@ -27,6 +28,9 @@ export const metadata: Metadata = {
 
 /** Data the app shell needs; a database failure is returned, not thrown, so it can be shown. */
 async function loadShell() {
+  // Next renders the layout once at build time for its built-in error pages; never open the database then
+  // (parallel build workers must not share the embedded database).
+  if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) return { ok: true as const, goals: [], tags: [], session: null, timer: null, google: false };
   try {
     await getConnection();
     const [goals, tags, session, timer, google] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer(), isGoogleConnected()]);

@@ -88,8 +88,8 @@ export async function getInsights(days: number, today: ISODate = todayISO()) {
     key,
     ...METRICS[key],
     current: avg(current, key),
-    // A comparison needs at least five days of earlier data.
-    baseline: avg(baseline, key, 5),
+    // A comparison needs at least a week of earlier data; smaller baselines give absurd percentages.
+    baseline: avg(baseline, key, 7),
     spark: current.map((d) => d[key]),
   }));
 
