@@ -54,7 +54,7 @@ If the address shows a 404 after the first deploy, go to **Settings → Pages** 
 
 Open the app from any device — phone included — at your own private address. Both services have free tiers.
 
-1. **Database:** create a [Supabase](https://supabase.com) project. In **Project Settings → Database → Connection string**, copy the **Transaction pooler** string (port 6543) and the **Session pooler** string (port 5432). Tables are created automatically on first start.
+1. **Database:** the Supabase project **Productivity APP** already has every table (and the Supabase REST API is locked out of them). In Supabase, click **Connect** at the top, then copy the **Transaction pooler** string (port 6543) and the **Session pooler** string (port 5432). Replace `[YOUR-PASSWORD]` with your database password; if you don't know it, reset it under **Project Settings → Database**. A new project also works: tables are created automatically on first start.
 2. **Deploy:** sign in to [vercel.com](https://vercel.com) with GitHub → **Add New → Project** → import `anatoliyvolkoff/productivity` → leave the build settings as detected.
 3. **Environment variables** (same screen, or later in **Settings → Environment Variables**):
 
@@ -62,7 +62,7 @@ Open the app from any device — phone included — at your own private address.
    |---|---|
    | `DATABASE_URL` | Supabase transaction pooler string (6543) |
    | `DATABASE_URL_DIRECT` | Supabase session pooler string (5432) |
-   | `APP_PASSWORD` | the password you'll type to open the app — **required online**, the app has no other login |
+   | `APP_PASSWORD` | the password you'll type to open the app. **Required online:** without it the app stays locked |
    | `APP_TIMEZONE` | your time zone, e.g. `Europe/Berlin` (servers run on UTC) |
    | `ANTHROPIC_API_KEY` | optional, for the AI brief |
    | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | optional, for Google Calendar |
