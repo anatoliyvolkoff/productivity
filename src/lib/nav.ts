@@ -4,6 +4,7 @@ import {
   CalendarDays,
   CheckSquare,
   Clock,
+  Compass,
   Flag,
   LayoutDashboard,
   type LucideIcon,
@@ -26,14 +27,15 @@ export type NavItem = {
 };
 
 export const NAV_ITEMS: NavItem[] = [
-  { slug: "", href: "/", label: "Dashboard", icon: LayoutDashboard, shortcut: "G D", description: "Your day at a glance." },
+  { slug: "", href: "/", label: "What now?", icon: Compass, shortcut: "G W", description: "One thing to do next — picked for your energy and time." },
+  { slug: "overview", href: "/overview", label: "Overview", icon: LayoutDashboard, shortcut: "G D", description: "Everything about today at a glance." },
   { slug: "today", href: "/today", label: "Today", icon: Sun, shortcut: "G T", description: "Top 3 MITs, timeline and daily note." },
   { slug: "tasks", href: "/tasks", label: "Tasks", icon: CheckSquare, description: "Active tasks, tags and priorities." },
   { slug: "braindump", href: "/braindump", label: "Brain dump", icon: Brain, shortcut: "B", description: "Capture everything, triage later." },
   { slug: "focus", href: "/focus", label: "Focus", icon: Timer, shortcut: "F", description: "Pomodoro, 52/17 and 90-minute ultradian sessions." },
   { slug: "clock", href: "/clock", label: "Clock", icon: Clock, description: "Big electronic clock and countdowns." },
   { slug: "calendar", href: "/calendar", label: "Calendar", icon: CalendarDays, shortcut: "G C", description: "Google Calendar sync and time-blocking." },
-  { slug: "habits", href: "/habits", label: "Habits", icon: Repeat, shortcut: "G H", description: "Cues, streaks and never-miss-twice." },
+  { slug: "habits", href: "/habits", label: "Habits", icon: Repeat, shortcut: "G H", description: "Cues and gentle consistency — no streaks." },
   { slug: "goals", href: "/goals", label: "Goals", icon: Flag, description: "Vision → goals → milestones → tasks & habits." },
   { slug: "mood", href: "/mood", label: "Mood", icon: Smile, shortcut: "M", description: "Energy × pleasantness check-ins." },
   { slug: "sleep", href: "/sleep", label: "Sleep", icon: Moon, description: "Sleep log, debt and consistency." },

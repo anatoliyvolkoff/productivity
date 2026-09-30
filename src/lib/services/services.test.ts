@@ -11,7 +11,9 @@ import { getOrCreateDailyNote, listNotes, updateNote } from "./notes";
 import { getProfile, updateProfile } from "./profile";
 import { saveSleep, sleepSummary } from "./sleep";
 import { deleteTag, listTags, renameTag } from "./tags";
-import { createTask, listTasks, setTaskDone, toggleMit, updateTask } from "./tasks";
+import { listReminders, saveReminder, setReminderDone } from "./reminders";
+import { breakDownTask, setStepDone, stepsView, stuckOnTask } from "./steps";
+import { createTask, listTasks, markNotNow, setTaskDone, toggleMit, updateTask } from "./tasks";
 
 const today = todayISO();
 
@@ -151,5 +153,42 @@ describe("services on an in-memory Postgres", () => {
     expect(ctx.habits.length).toBeGreaterThan(0);
     expect(ctx.sleep.lastNight).not.toBeNull();
     expect((await entriesBetween(today, today)).length).toBeGreaterThanOrEqual(0);
+  });
+
+  it("logs the daily meds reminder once a day, with a 7-day history", async () => {
+    const [meds] = await listReminders(today);
+    expect(meds).toMatchObject({ title: "Antidepressant", emoji: "💊", time: "09:00", doneAt: null, doneOfLast7: 0 });
+    await setReminderDone(meds.id, true);
+    await setReminderDone(meds.id, true); // a second tap never double-logs
+    const [after] = await listReminders(today);
+    expect(after.doneAt).not.toBeNull();
+    expect(after.doneOfLast7).toBe(1);
+    expect(after.last7).toHaveLength(7);
+    await setReminderDone(meds.id, false);
+    expect((await listReminders(today))[0].doneAt).toBeNull();
+    await expect(saveReminder({ id: meds.id, title: "Meds", time: "08:30", notify: true, inGoogle: false })).resolves.toMatchObject({ time: "08:30" });
+  });
+
+  it("breaks a task into steps and splits a step when stuck", async () => {
+    const task = await createTask({ title: "Do taxes" });
+    await breakDownTask(task.id);
+    let view = await stepsView(task.id);
+    expect(view.tree.length).toBeGreaterThanOrEqual(3);
+    const first = view.current!;
+    await stuckOnTask(task.id);
+    view = await stepsView(task.id);
+    expect(view.current?.parentStepId).toBe(first.id);
+    for (const child of view.tree[0].children) await setStepDone(child.id, true);
+    view = await stepsView(task.id);
+    expect(view.tree[0].doneAt).not.toBeNull(); // parent completes with its children
+    expect(view.current?.id).toBe(view.tree[1].id);
+  });
+
+  it("lets a task rest after Not now and moves past-date tasks to Whenever", async () => {
+    const t = await createTask({ title: "Old thing", dueDate: addDaysISO(today, -3) });
+    await markNotNow(t.id);
+    expect((await listTasks({ ids: [t.id] }))[0].notNowAt).not.toBeNull();
+    expect((await listTasks({ view: "whenever" })).map((x) => x.title)).toContain("Old thing");
+    expect((await listTasks({ view: "today" })).map((x) => x.title)).not.toContain("Old thing");
   });
 });

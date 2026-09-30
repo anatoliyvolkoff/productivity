@@ -44,7 +44,7 @@ export function SleepCard({ sleep, targetMin }: { sleep: SleepSummary; targetMin
         </div>
         <div>
           <dt className="text-fg-muted">Sleep debt (14d)</dt>
-          <dd className="font-semibold" style={{ color: sleep.debt14 > targetMin ? "var(--delta-bad)" : undefined }}>
+          <dd className="font-semibold" >
             {formatMinutes(sleep.debt14)}
           </dd>
         </div>

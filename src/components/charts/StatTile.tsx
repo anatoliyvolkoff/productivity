@@ -3,15 +3,14 @@ import { Sparkline } from "./Sparkline";
 
 /**
  * Stat tile: label · value · delta vs a named period · sparkline.
- * The delta's color follows direction × whether up is good, and always
- * carries an arrow + sign so it never relies on color alone.
+ * The delta is neutral grey with an arrow + sign: it describes a change, it
+ * doesn't judge it (no red "you did worse").
  */
 export function StatTile({
   label,
   value,
   delta,
   deltaLabel = "vs prior 4 weeks",
-  higherIsBetter = true,
   spark,
   formatDelta = (d: number) => `${d > 0 ? "+" : ""}${Math.round(d)}%`,
   flatBelow = 0.5,
@@ -21,6 +20,7 @@ export function StatTile({
   value: string;
   delta?: number | null;
   deltaLabel?: string;
+  /** Kept for callers; deltas are shown neutrally either way. */
   higherIsBetter?: boolean;
   spark?: Array<number | null>;
   formatDelta?: (d: number) => string;
@@ -30,7 +30,6 @@ export function StatTile({
 }) {
   const hasDelta = delta !== undefined && delta !== null && Number.isFinite(delta);
   const flat = hasDelta && Math.abs(delta) < flatBelow;
-  const good = hasDelta && !flat && (delta > 0) === higherIsBetter;
   const Icon = !hasDelta || flat ? Minus : delta > 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <div className="flex flex-col gap-1">
@@ -42,7 +41,7 @@ export function StatTile({
       <div className="flex items-center gap-1 text-[12px]">
         {hasDelta ? (
           <>
-            <span className="inline-flex items-center font-semibold" style={{ color: flat ? "var(--fg-muted)" : good ? "var(--delta-good)" : "var(--delta-bad)" }}>
+            <span className="inline-flex items-center font-semibold" style={{ color: "var(--fg-muted)" }}>
               <Icon className="size-3.5" />
               {flat ? "No change" : formatDelta(delta)}
             </span>

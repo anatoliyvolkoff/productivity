@@ -13,10 +13,13 @@ import { tableCounts } from "@/lib/services/backup";
 import { googleStatus } from "@/lib/services/google";
 import { getProfile } from "@/lib/services/profile";
 import { listTags } from "@/lib/services/tags";
+import { listReminders } from "@/lib/services/reminders";
+import { ReminderSettings } from "@/components/reminders/ReminderSettings";
+import { SensorySettings } from "@/components/sensory/SensorySettings";
 
 export default async function SettingsPage(props: PageProps<"/settings">) {
   const sp = await props.searchParams;
-  const [profile, conn, google, tags, counts] = await Promise.all([getProfile(), getConnection(), googleStatus(), listTags(), tableCounts()]);
+  const [profile, conn, google, tags, counts, reminders] = await Promise.all([getProfile(), getConnection(), googleStatus(), listTags(), tableCounts(), listReminders()]);
   const googleNotice: Record<string, string> = {
     "missing-config": "Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to .env.local first.",
     denied: "Google access was declined.",
@@ -27,10 +30,14 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
 
   return (
     <div className="mx-auto max-w-[1100px]">
-      <PageHeader title="Settings" subtitle="Targets, connections and your data." />
+      <PageHeader title="Settings" subtitle="How the app feels, reminders, connections and your data." />
       {notice && <div className="mb-4 rounded-md bg-danger/10 px-4 py-2.5 text-[13.5px] text-danger">{notice}</div>}
+      <div className="mb-4">
+        <SensorySettings />
+      </div>
       <div className="grid grid-cols-2 items-start gap-4">
         <div className="flex flex-col gap-4">
+          <ReminderSettings reminders={reminders} googleConnected={google.connected} googleAvailable={!IS_WEB} />
           <ProfileForm profile={profile} />
           <LocationForm current={profile.locationName} />
           <TagManager tags={tags} />

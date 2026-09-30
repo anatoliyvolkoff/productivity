@@ -3,6 +3,7 @@ import Link from "next/link";
 import { EisenhowerMatrix } from "@/components/tasks/EisenhowerMatrix";
 import { QuickAddInput } from "@/components/tasks/QuickAddInput";
 import { TaskList } from "@/components/tasks/TaskList";
+import { WheneverDrawer } from "@/components/tasks/WheneverDrawer";
 import { Card } from "@/components/ui/Card";
 import { SegmentedLinks } from "@/components/ui/Segmented";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -29,11 +30,11 @@ export default async function TasksPage(props: PageProps<"/tasks">) {
   const matrix = sp.mode === "matrix";
   const today = todayISO();
 
-  const [tasks, tags, open, done] = await Promise.all([
+  const [tasks, tags, done, whenever] = await Promise.all([
     listTasks({ view: matrix ? "open" : view, tag }),
     listTags(),
-    listTasks({ view: "open" }),
     view === "today" && !matrix ? listTasks({ view: "done", limit: 60 }) : Promise.resolve([]),
+    view === "today" && !matrix ? listTasks({ view: "whenever" }) : Promise.resolve([]),
   ]);
   const tagColors = Object.fromEntries(tags.map((t) => [t.name, t.color]));
   const doneToday = done.filter((t) => t.completedAt && toISODate(t.completedAt) === today);
@@ -51,7 +52,7 @@ export default async function TasksPage(props: PageProps<"/tasks">) {
     <div className="mx-auto max-w-[1200px]">
       <PageHeader
         title="Tasks"
-        subtitle={`${open.length} open · ${mits.length}/${MAX_MITS} top tasks today`}
+        subtitle={`${mits.length} of up to ${MAX_MITS} top tasks picked for today`}
         actions={
           <div className="inline-flex rounded-full bg-surface-3 p-1">
             <Link href={href({ mode: undefined })} className={cn("grid size-8 place-items-center rounded-full", !matrix ? "bg-surface shadow-sm" : "text-fg-muted")} aria-label="List view">
@@ -81,6 +82,7 @@ export default async function TasksPage(props: PageProps<"/tasks">) {
                   <Card title="Also on today">
                     <TaskList tasks={rest} tagColors={tagColors} emptyText="Nothing else due. Pick from All open, or enjoy the space." />
                   </Card>
+                  <WheneverDrawer tasks={whenever.map((t) => ({ id: t.id, title: t.title, dueDate: t.dueDate }))} />
                   {doneToday.length > 0 && (
                     <Card title={`Completed today · ${doneToday.length}`}>
                       <TaskList tasks={doneToday} tagColors={tagColors} compact showMitToggle={false} />

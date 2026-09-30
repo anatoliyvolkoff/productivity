@@ -67,26 +67,22 @@ export function buildLocalBrief(ctx: DayContext): MorningBriefT {
   if (ctx.energy.now !== null) energy += ` Energy now: ${energyLabel(ctx.energy.now).toLowerCase()}.`;
 
   const remaining = ctx.habits.filter((h) => h.scheduledToday && !h.doneToday && !(h.schedule.kind === "per_week" && h.streak.doneNow));
-  const atRisk = remaining.filter((h) => h.streak.missedLast);
-  const habits = atRisk.length
-    ? `Don't miss twice: ${atRisk.map((h) => h.title).join(", ")}. ${remaining.length > atRisk.length ? `Also left: ${remaining.filter((h) => !h.streak.missedLast).slice(0, 3).map((h) => h.title).join(", ")}.` : ""}`.trim()
-    : remaining.length
-      ? `Still to do: ${remaining.slice(0, 4).map((h) => h.title).join(", ")}.`
-      : ctx.habits.length
-        ? "All of today's habits are done."
-        : "No habits yet — pick one small daily habit to start.";
+  const habits = remaining.length
+    ? `Still open today: ${remaining.slice(0, 4).map((h) => h.title).join(", ")} — a small version counts.`
+    : ctx.habits.length
+      ? "All of today's habits are done."
+      : "No habits yet — pick one small daily habit to start.";
 
-  const overdue = ctx.otherTasks.filter((t) => t.dueDate && t.dueDate < today);
-  const watchOut = overdue.length
-    ? `${overdue.length} overdue ${overdue.length === 1 ? "task" : "tasks"} — reschedule or drop ${overdue.length === 1 ? "it" : "them"} so ${overdue.length === 1 ? "it stops" : "they stop"} nagging.`
+  const watchOut = ctx.wheneverCount
+    ? `${ctx.wheneverCount} ${ctx.wheneverCount === 1 ? "task has" : "tasks have"} drifted into Whenever — no rush. Peek when you have a moment.`
     : meetingMin > 240
       ? `Meetings take ${formatMinutes(meetingMin)} today — guard at least one focus block.`
       : null;
 
   const day = format(fromISODate(today), "EEEE");
   const headline = important.length
-    ? `${day}: ${important.length === 1 ? "one thing" : `${important.length} things`} to win the day${timed.length ? `, ${timed.length} on the calendar` : ""}.`
-    : `${day}: no top tasks yet — pick up to three.`;
+    ? `${day}: ${important.length === 1 ? "one thing" : `${important.length} things`} that matter most${timed.length ? `, ${timed.length} on the calendar` : ""}.`
+    : `${day}: nothing picked yet — that's fine. Tap “What now?” when you're ready.`;
 
   return {
     headline,
@@ -104,11 +100,11 @@ function reason(t: TaskRow, today: string, picked: boolean): string {
   const parts: string[] = [];
   if (t.dueDate) {
     const d = daysBetween(today, t.dueDate);
-    parts.push(d < 0 ? "overdue" : d === 0 ? "due today" : d === 1 ? "due tomorrow" : `due in ${d} days`);
+    parts.push(d < 0 ? "from an earlier day" : d === 0 ? "due today" : d === 1 ? "due tomorrow" : `due in ${d} days`);
   }
   if (t.goalTitle) parts.push(`moves “${t.goalTitle}” forward`);
   if (t.priority <= 2) parts.push(`priority P${t.priority}`);
   if (t.energy === "high") parts.push("needs your peak energy");
-  if (parts.length === 0) parts.push(picked ? "you picked it as a top task" : "highest priority score today");
+  if (parts.length === 0) parts.push(picked ? "you picked it as a top task" : "looks most important today");
   return parts.join(" · ");
 }

@@ -1,14 +1,16 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Lexend } from "next/font/google";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
 import { headers } from "next/headers";
 import { connection } from "next/server";
 import { GoogleAutoSync } from "@/components/calendar/GoogleAutoSync";
 import { CommandPalette } from "@/components/shell/CommandPalette";
 import { DatabaseError } from "@/components/shell/DatabaseError";
+import { MotionRoot } from "@/components/sensory/MotionRoot";
 import { KeyboardShortcuts } from "@/components/shell/KeyboardShortcuts";
 import { Sidebar } from "@/components/shell/Sidebar";
-import { themeInitScript } from "@/components/shell/ThemeToggle";
+import { themeInitScript } from "@/lib/theme-init";
+import { sensoryInitScript } from "@/lib/sensory-init";
 import { TimezoneCheck } from "@/components/shell/TimezoneCheck";
 import { TopBar } from "@/components/shell/TopBar";
 import { TaskEditorProvider } from "@/components/tasks/TaskEditor";
@@ -17,11 +19,14 @@ import { getConnection } from "@/lib/db";
 import { getRunningSession, getRunningTimer } from "@/lib/services/focus";
 import { goalOptions } from "@/lib/services/goals";
 import { isGoogleConnected } from "@/lib/services/google";
+import { listReminders } from "@/lib/services/reminders";
 import { listTags } from "@/lib/services/tags";
+import { ReminderNotifier } from "@/components/reminders/ReminderNotifier";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin", "cyrillic"] });
 const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"] });
+const lexend = Lexend({ variable: "--font-readable", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Productivity OS",
@@ -32,11 +37,18 @@ export const metadata: Metadata = {
 async function loadShell() {
   // Next renders the layout once at build time for its built-in error pages; never open the database then
   // (parallel build workers must not share the embedded database).
-  if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) return { ok: true as const, goals: [], tags: [], session: null, timer: null, google: false };
+  if (process.env.NEXT_PHASE === PHASE_PRODUCTION_BUILD) return { ok: true as const, goals: [], tags: [], session: null, timer: null, google: false, reminders: [] };
   try {
     await getConnection();
-    const [goals, tags, session, timer, google] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer(), isGoogleConnected()]);
-    return { ok: true as const, goals, tags: tags.map((t) => t.name), session, timer, google };
+    const [goals, tags, session, timer, google, reminders] = await Promise.all([
+      goalOptions(),
+      listTags(),
+      getRunningSession(),
+      getRunningTimer(),
+      isGoogleConnected(),
+      listReminders(),
+    ]);
+    return { ok: true as const, goals, tags: tags.map((t) => t.name), session, timer, google, reminders };
   } catch (error) {
     return { ok: false as const, error: error instanceof Error ? error.message : String(error) };
   }
@@ -49,9 +61,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const path = (await headers()).get("x-pos-path");
   if (path === "/login") {
     return (
-      <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+      <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${lexend.variable}`} suppressHydrationWarning>
         <head>
-          <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+          <script dangerouslySetInnerHTML={{ __html: themeInitScript + sensoryInitScript }} />
         </head>
         <body>{children}</body>
       </html>
@@ -73,16 +85,19 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <KeyboardShortcuts />
         <Toaster />
         {shell.google && <GoogleAutoSync />}
+        <ReminderNotifier reminders={shell.reminders} />
       </TaskEditorProvider>
     );
 
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${jetbrains.variable} ${lexend.variable}`} suppressHydrationWarning>
       <head>
         {/* Applies the saved theme before first paint (Next.js "preventing flash before hydration" pattern). */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript + sensoryInitScript }} />
       </head>
-      <body className="flex min-w-[1280px]">{body}</body>
+      <body className="flex min-w-[1280px]">
+        <MotionRoot>{body}</MotionRoot>
+      </body>
     </html>
   );
 }

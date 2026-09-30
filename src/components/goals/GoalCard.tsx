@@ -76,7 +76,7 @@ export function GoalCard({
             <b className="text-fg">{pct}%</b>
             {g.expected !== null && g.health !== "done" && ` · expected ${Math.round(g.expected * 100)}% by today`}
           </span>
-          <span>{g.daysLeft === null ? "No deadline" : g.daysLeft >= 0 ? `${g.daysLeft} days left` : `${-g.daysLeft} days overdue`}</span>
+          <span>{g.daysLeft === null ? "No deadline" : g.daysLeft >= 0 ? `${g.daysLeft} days left` : "Past its date — adjust whenever"}</span>
         </div>
         {g.progress >= 0.7 && g.progress < 1 && <p className="mt-1 text-[12.5px] font-medium" style={{ color }}>Only {left}% to go — the finish line is in sight.</p>}
       </div>

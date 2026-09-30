@@ -397,3 +397,45 @@ export async function googleStatus() {
   };
 }
 
+
+/**
+ * A daily recurring event with a pop-up alert at its start — Google Calendar
+ * then reminds you on every device, even when the app is closed.
+ * Returns the event id (the existing one when updating).
+ */
+export async function upsertDailyReminderEvent(input: { eventId: string | null; title: string; time: string; startDate: string }): Promise<string> {
+  const calendarId = await targetCalendarId();
+  if (!calendarId) throw new GoogleError("No Google calendar to write to.");
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const [h, m] = input.time.split(":").map(Number);
+  const endMin = h * 60 + m + 5;
+  const hhmm = (min: number) => `${String(Math.floor(min / 60) % 24).padStart(2, "0")}:${String(min % 60).padStart(2, "0")}`;
+  const body = JSON.stringify({
+    summary: input.title,
+    start: { dateTime: `${input.startDate}T${hhmm(h * 60 + m)}:00`, timeZone },
+    end: { dateTime: `${input.startDate}T${hhmm(endMin)}:00`, timeZone },
+    recurrence: ["RRULE:FREQ=DAILY"],
+    reminders: { useDefault: false, overrides: [{ method: "popup", minutes: 0 }] },
+    transparency: "transparent",
+  });
+  const path = `/calendars/${encodeURIComponent(calendarId)}/events`;
+  if (input.eventId) {
+    try {
+      return (await api<GoogleEvent>(`${path}/${encodeURIComponent(input.eventId)}`, { method: "PATCH", body })).id;
+    } catch (error) {
+      if (!(error instanceof GoogleError && (error.status === 404 || error.status === 410))) throw error;
+    }
+  }
+  return (await api<GoogleEvent>(path, { method: "POST", body })).id;
+}
+
+export async function deleteReminderEvent(eventId: string): Promise<void> {
+  const calendarId = await targetCalendarId();
+  if (!calendarId) return;
+  try {
+    await api(`/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(eventId)}`, { method: "DELETE" });
+  } catch (error) {
+    if (error instanceof GoogleError && (error.status === 404 || error.status === 410)) return;
+    throw error;
+  }
+}

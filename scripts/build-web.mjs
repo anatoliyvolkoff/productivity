@@ -59,13 +59,16 @@ for (const file of walk(w("src/app"))) {
 write(
   "src/app/layout.tsx",
   `import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
-import { themeInitScript } from "@/components/shell/ThemeToggle";
+import { Inter, JetBrains_Mono, Lexend } from "next/font/google";
+import { themeInitScript } from "@/lib/theme-init";
+import { sensoryInitScript } from "@/lib/sensory-init";
 import { WebShell } from "@/web/WebShell";
+import { MotionRoot } from "@/components/sensory/MotionRoot";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin", "cyrillic"] });
 const jetbrains = JetBrains_Mono({ variable: "--font-jetbrains", subsets: ["latin"] });
+const lexend = Lexend({ variable: "--font-readable", subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Productivity OS",
@@ -74,12 +77,14 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={\`\${inter.variable} \${jetbrains.variable}\`} suppressHydrationWarning>
+    <html lang="en" className={\`\${inter.variable} \${jetbrains.variable} \${lexend.variable}\`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript + sensoryInitScript }} />
       </head>
       <body className="flex min-w-[1280px]">
-        <WebShell>{children}</WebShell>
+        <MotionRoot>
+          <WebShell>{children}</WebShell>
+        </MotionRoot>
       </body>
     </html>
   );

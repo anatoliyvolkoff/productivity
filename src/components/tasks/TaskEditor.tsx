@@ -12,6 +12,7 @@ import { Segmented } from "@/components/ui/Segmented";
 import type { Task } from "@/lib/db/schema";
 import { formatMinutes, todayISO } from "@/lib/domain/dates";
 import { useRunner } from "@/lib/hooks/useRunner";
+import { StepsPanel } from "@/components/steps/StepsPanel";
 import { QuickAddInput } from "./QuickAddInput";
 
 export type EditableTask = Task & { trackedMin?: number; goalTitle?: string | null };
@@ -172,6 +173,10 @@ function TaskDialog({ task, goals, onClose }: { task: EditableTask; goals: Optio
           </Button>
           {task.trackedMin ? <span className="self-center text-[12px] text-fg-muted">{formatMinutes(task.trackedMin)} tracked</span> : null}
         </div>
+        <section className="rounded-md bg-surface-2 p-3 ring-1 ring-outline">
+          <div className="mb-2 text-[12px] font-medium text-fg-muted">Tiny steps</div>
+          <StepsPanel taskId={task.id} taskTitle={task.title} />
+        </section>
         <Field label="Priority">
           <Segmented
             value={form.priority}

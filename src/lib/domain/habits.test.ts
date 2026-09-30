@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { addDaysISO } from "./dates";
-import { adherence, formationProgress, isScheduledOn, scheduleLabel, strength, streaks, type HabitLike } from "./habits";
+import { adherence, formationProgress, isScheduledOn, recentConsistency, scheduleLabel, strength, streaks, type HabitLike } from "./habits";
 
 const today = "2026-09-29"; // Tuesday
 const daily: HabitLike = { type: "boolean", target: 1, schedule: { kind: "daily" }, startDate: "2026-09-01" };
@@ -84,5 +84,16 @@ describe("habit metrics", () => {
     expect(scheduleLabel({ kind: "weekdays", days: [0, 6] })).toBe("Weekends");
     expect(scheduleLabel({ kind: "weekdays", days: [0, 1] })).toBe("Mon, Sun");
     expect(scheduleLabel({ kind: "per_week", times: 3 })).toBe("3× per week");
+  });
+});
+
+describe("recent consistency (x of the last 7)", () => {
+  it("counts scheduled days and ignores an unfinished today", () => {
+    expect(recentConsistency(daily, done(-1, -2, -4), today)).toEqual({ done: 3, of: 6 });
+    expect(recentConsistency(daily, done(0, -1), today)).toEqual({ done: 2, of: 7 });
+  });
+  it("uses the weekly target for per-week habits", () => {
+    const perWeek = { ...daily, schedule: { kind: "per_week" as const, times: 3 } };
+    expect(recentConsistency(perWeek, done(-1, -3), today)).toEqual({ done: 2, of: 3 });
   });
 });

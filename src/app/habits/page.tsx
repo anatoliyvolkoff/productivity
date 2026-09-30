@@ -41,13 +41,13 @@ export default async function HabitsPage() {
             <Card title="How it works" className="col-span-7">
               <ul className="grid grid-cols-3 gap-4 text-[13px] text-fg-muted">
                 <li>
-                  <b className="block text-fg">Never miss twice</b>A single miss barely affects habit formation. Your streak survives one miss — two in a row breaks it.
+                  <b className="block text-fg">Nothing to lose</b>There are no streaks here. “5 of the last 7” is doing great, and a day off barely moves it. Come back any time.
                 </li>
                 <li>
                   <b className="block text-fg">Cue it</b>“After X, I will Y” — an if-then plan ties the habit to something you already do.
                 </li>
                 <li>
-                  <b className="block text-fg">Strength, not just streaks</b>Strength weighs recent consistency, so one bad day dents it instead of zeroing it.
+                  <b className="block text-fg">Tiny counts</b>Doing a small version still counts. Research on habit formation shows an off day barely affects it — what matters is coming back.
                 </li>
               </ul>
             </Card>
@@ -93,7 +93,7 @@ function HabitCard({ habit: h, today }: { habit: HabitView; today: string }) {
         d,
         {
           value: scheduled ? Math.min(1, v / h.target) : null,
-          text: !scheduled ? "Not scheduled" : h.type === "boolean" ? (v >= 1 ? "Done" : "Missed") : `${Math.round(v)} / ${h.target}${unit}`,
+          text: !scheduled ? "Not scheduled" : h.type === "boolean" ? (v >= 1 ? "Done" : "Not this time") : `${Math.round(v)} / ${h.target}${unit}`,
         },
       ];
     }),
@@ -129,14 +129,15 @@ function HabitCard({ habit: h, today }: { habit: HabitView; today: string }) {
 
       <dl className="mt-4 grid grid-cols-3 gap-3 text-[12px]">
         <div>
-          <dt className="text-fg-muted">Streak</dt>
-          <dd className="flex items-center gap-1 text-[18px] font-semibold">
-            <Flame className="size-4 text-accent" />
-            {h.streak.current}
-            <span className="text-[12px] font-normal text-fg-muted">
-              {h.streak.unit}
-              {h.streak.current === 1 ? "" : "s"} · best {h.streak.best}
-            </span>
+          <dt className="text-fg-muted">Recently</dt>
+          <dd className="text-[18px] font-semibold">
+            {h.recent.of > 0 ? (
+              <>
+                {h.recent.done} <span className="text-[12px] font-normal text-fg-muted">of the last {h.recent.of}</span>
+              </>
+            ) : (
+              <span className="text-[13px] font-normal text-fg-muted">Starting fresh</span>
+            )}
           </dd>
         </div>
         <div>
@@ -151,7 +152,6 @@ function HabitCard({ habit: h, today }: { habit: HabitView; today: string }) {
           </dd>
         </div>
       </dl>
-      {h.streak.missedLast && !h.doneToday && <p className="mt-3 text-[12.5px] font-medium text-accent">Missed last time — today is the one that counts. Never miss twice.</p>}
 
       <div className="mt-4">
         <Heatmap from={from} to={today} cells={cells} cell={11} />

@@ -137,11 +137,33 @@ export const tasks = pgTable(
     parentTaskId: uuid("parent_task_id").references((): AnyPgColumn => tasks.id, { onDelete: "cascade" }),
     tags: tagList(),
     sortOrder: integer("sort_order").notNull().default(0),
+    /** Last "Not now" — the What now? picker lets the task rest for a while. */
+    notNowAt: ts("not_now_at"),
     completedAt: ts("completed_at"),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [index().on(t.status), index().on(t.mitOn), index().on(t.dueDate), index().on(t.goalId)],
+);
+
+/**
+ * Tiny first steps for a task ("break it down"). "I'm stuck" splits a step
+ * into even smaller children; the current step is the first unfinished leaf.
+ */
+export const taskSteps = pgTable(
+  "task_steps",
+  {
+    id: id(),
+    taskId: uuid("task_id")
+      .notNull()
+      .references(() => tasks.id, { onDelete: "cascade" }),
+    parentStepId: uuid("parent_step_id").references((): AnyPgColumn => taskSteps.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    sortOrder: integer("sort_order").notNull().default(0),
+    doneAt: ts("done_at"),
+    createdAt: createdAt(),
+  },
+  (t) => [index().on(t.taskId)],
 );
 
 // ─── Habits ─────────────────────────────────────────────────────────────────
@@ -339,6 +361,39 @@ export const sleepEntries = pgTable("sleep_entries", {
   updatedAt: updatedAt(),
 });
 
+// ─── Reminders ("did I do it?") ─────────────────────────────────────────────
+
+export const reminders = pgTable("reminders", {
+  id: id(),
+  /** Shown in the app. */
+  title: text("title").notNull(),
+  /** Shown on the lock screen (calendar event, notification) — can be more private. */
+  publicTitle: text("public_title"),
+  emoji: text("emoji"),
+  /** "HH:MM" local time. */
+  time: text("time").notNull().default("09:00"),
+  /** Browser notification when the app is open at that time. */
+  notify: boolean("notify").notNull().default(true),
+  /** Recurring daily Google Calendar event that pops up on your phone. */
+  googleEventId: text("google_event_id"),
+  archivedAt: ts("archived_at"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+});
+
+export const reminderLogs = pgTable(
+  "reminder_logs",
+  {
+    id: id(),
+    reminderId: uuid("reminder_id")
+      .notNull()
+      .references(() => reminders.id, { onDelete: "cascade" }),
+    date: date("date").notNull(),
+    doneAt: ts("done_at").notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex().on(t.reminderId, t.date)],
+);
+
 // ─── AI ─────────────────────────────────────────────────────────────────────
 
 export const aiSummaries = pgTable(
@@ -373,3 +428,6 @@ export type Note = typeof notes.$inferSelect;
 export type MoodEntry = typeof moodEntries.$inferSelect;
 export type SleepEntry = typeof sleepEntries.$inferSelect;
 export type AiSummary = typeof aiSummaries.$inferSelect;
+export type TaskStep = typeof taskSteps.$inferSelect;
+export type Reminder = typeof reminders.$inferSelect;
+export type ReminderLog = typeof reminderLogs.$inferSelect;

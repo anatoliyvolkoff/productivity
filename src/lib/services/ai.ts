@@ -103,10 +103,12 @@ export type WeeklyReviewT = z.infer<typeof WeeklyReview>;
 
 const SHARED_RULES = `You are the planning assistant inside a personal productivity app used by one person.
 Ground every statement in the JSON data you are given; never invent tasks, events or numbers.
-Use findings from neuroscience and behavioral science where they genuinely help (circadian energy peaks and the post-lunch dip, ultradian ~90-minute focus cycles, limited working memory, the cost of task switching, sleep's effect on attention and mood, "never miss twice" for habits). Don't lecture and never make medical claims.
-Write plainly and briefly, like a sharp, kind coach. Use the person's name if one is given. Times are local, 24-hour.`;
+The person is neurodivergent (ADHD/autism-friendly design): starting tasks, time blindness and working memory are the hard parts. Make the next step obvious and small.
+Use findings from neuroscience and behavioral science where they genuinely help (circadian energy peaks and the post-lunch dip, ultradian ~90-minute focus cycles, limited working memory, the cost of task switching, sleep's effect on attention and mood). Don't lecture and never make medical claims.
+Be shame-free: never say "failed", "missed", "overdue", "behind" or "should have"; say "not yet", "later" or "whenever". Never mention streaks, scores or counts of things not done. Past-date tasks rest in a "Whenever" drawer — mention them only gently, if at all.
+Write plainly and briefly, like a warm, calm friend. Use the person's name if one is given. Times are local, 24-hour.`;
 
-async function generate<T>(schema: z.ZodType<T>, system: string, data: unknown): Promise<T> {
+async function generate<T>(schema: z.ZodType<T>, system: string, data: unknown, options: { effort?: typeof EFFORT } = {}): Promise<T> {
   if (!aiConfigured()) throw new Error(IS_WEB ? "Add your Anthropic API key in Settings → AI." : "Add ANTHROPIC_API_KEY to .env.local to use AI summaries.");
   try {
     const response = await anthropic().beta.messages.parse({
@@ -114,7 +116,7 @@ async function generate<T>(schema: z.ZodType<T>, system: string, data: unknown):
       max_tokens: 16000,
       betas: ["server-side-fallback-2026-07-01"],
       fallbacks: "default",
-      output_config: { effort: EFFORT, format: betaZodOutputFormat(schema) },
+      output_config: { effort: options.effort ?? EFFORT, format: betaZodOutputFormat(schema) },
       system: `${SHARED_RULES}\n\n${system}`,
       messages: [{ role: "user", content: `Here is the data as JSON:\n\n${JSON.stringify(data)}` }],
     });
@@ -232,6 +234,7 @@ function snapshot(ctx: DayContext) {
     },
     topTasks: ctx.mits.map(taskJson),
     otherTasksToday: ctx.otherTasks.map(taskJson),
+    wheneverDrawerCount: ctx.wheneverCount,
     calendar: ctx.events.map((e) => ({
       title: e.title,
       start: e.allDay ? "all day" : hhmm(e.startAt),
@@ -293,8 +296,7 @@ function habitJson(h: DayContext["habits"][number]) {
     cue: h.cue,
     scheduledToday: h.scheduledToday,
     doneToday: h.doneToday,
-    streak: `${h.streak.current} ${h.streak.unit}s`,
-    missedLastTime: h.streak.missedLast,
+    recently: `${h.recent.done} of the last ${h.recent.of}`,
     adherence30: h.adherence30 === null ? null : Math.round(h.adherence30 * 100),
   };
 }
@@ -309,4 +311,29 @@ function goalJson(g: DayContext["goals"][number]) {
     due: g.dueDate,
     priority: g.priority,
   };
+}
+
+// ─── Break it down / I'm stuck ──────────────────────────────────────────────
+
+const Steps = z.object({
+  steps: z.array(z.string()).describe("2–6 tiny, concrete steps in order, each doable in about 2–5 minutes, starting with a verb."),
+});
+
+const STEP_RULES = `Write steps for someone who finds starting hard. Each step is one small physical or visible action (open, write, find, send, click), doable in 2–5 minutes, starting with a verb, under 12 words. The first step must be almost effortless. No advice, no motivation, no numbering, no time estimates.`;
+
+/** Turn a task into tiny first steps. Fast: low effort. */
+export async function aiBreakDown(task: { title: string; notes: string | null; effortMin: number | null }): Promise<string[]> {
+  const out = await generate(Steps, `${STEP_RULES}\nBreak this task into 3–6 steps that get it done (or clearly started).`, task, { effort: "low" });
+  return out.steps.map((s) => s.trim()).filter(Boolean).slice(0, 6);
+}
+
+/** Split one step the person is stuck on into even smaller ones. */
+export async function aiUnstick(input: { task: string; stuckOn: string; stepsSoFar: string[] }): Promise<string[]> {
+  const out = await generate(
+    Steps,
+    `${STEP_RULES}\nThe person is stuck on one step. Split just that step into 2–4 even smaller steps — smaller than feels necessary. If it's vague, the first step makes it concrete.`,
+    input,
+    { effort: "low" },
+  );
+  return out.steps.map((s) => s.trim()).filter(Boolean).slice(0, 4);
 }

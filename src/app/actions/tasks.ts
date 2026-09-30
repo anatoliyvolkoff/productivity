@@ -9,6 +9,7 @@ import {
   carryOverMits,
   createTask,
   deleteTask,
+  markNotNow,
   setTaskDone,
   toggleMit,
   updateTask,
@@ -80,6 +81,12 @@ export async function toggleTaskMit(id: string, date: ISODate = todayISO()) {
 
 export async function carryOver(from: ISODate, to: ISODate) {
   const result = await attempt(() => carryOverMits(from, to));
+  refresh();
+  return result;
+}
+
+export async function notNow(id: string) {
+  const result = await attempt(() => markNotNow(id));
   refresh();
   return result;
 }

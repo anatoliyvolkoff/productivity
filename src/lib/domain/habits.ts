@@ -173,3 +173,29 @@ export function scheduleLabel(schedule: HabitSchedule): string {
   if (days.length === 2 && days.includes(0) && days.includes(6)) return "Weekends";
   return days.map((d) => names[d]).join(", ");
 }
+
+/**
+ * "5 of the last 7" — how often it happened recently, shown instead of a
+ * streak: nothing resets to zero, and one off day barely moves it.
+ * Per-week habits count done days against the weekly target.
+ */
+export function recentConsistency(habit: HabitLike, values: HabitValues, today: ISODate, days = 7): { done: number; of: number } {
+  let done = 0;
+  let of = 0;
+  for (let i = days - 1; i >= 0; i--) {
+    const date = addDaysISO(today, -i);
+    if (date < habit.startDate) continue;
+    const hit = isDone(habit, values.get(date));
+    if (habit.schedule.kind === "per_week") {
+      if (hit) done++;
+      continue;
+    }
+    if (!isScheduledOn(habit.schedule, date)) continue;
+    // Today only counts once it's done — it isn't "not yet" until the day is over.
+    if (i === 0 && !hit) continue;
+    of++;
+    if (hit) done++;
+  }
+  if (habit.schedule.kind === "per_week") of = Math.max(habit.schedule.times, done);
+  return { done, of };
+}

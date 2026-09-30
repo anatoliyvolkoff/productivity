@@ -9,6 +9,7 @@ import {
   isDone,
   isScheduledOn,
   strength,
+  recentConsistency,
   streaks,
   type HabitLike,
   type HabitValues,
@@ -25,6 +26,8 @@ export type HabitView = Habit & {
   scheduledToday: boolean;
   doneToday: boolean;
   streak: StreakInfo;
+  /** "x of the last 7" — shown instead of streaks. */
+  recent: { done: number; of: number };
   strength: number;
   adherence30: number | null;
   formation: number;
@@ -77,6 +80,7 @@ function withStats(h: Habit, values: HabitValues, today: ISODate): HabitView {
     scheduledToday: isScheduledOn(h.schedule, today),
     doneToday: isDone(like, todayValue),
     streak: streaks(like, values, today),
+    recent: recentConsistency(like, values, today),
     strength: strength(like, values, today),
     adherence30: adherence(like, values, today, 30),
     formation: formationProgress(like, values, today),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Flame, Minus, Plus } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import Link from "next/link";
 import { useOptimistic } from "react";
 import { setHabitValue, stepHabit } from "@/app/actions/habits";
@@ -20,10 +20,10 @@ export type HabitItem = {
   todayValue: number;
   doneToday: boolean;
   autoSource: "none" | "focus_minutes" | "tasks_done";
-  streak: { current: number; unit: "day" | "week"; missedLast: boolean };
+  recent: { done: number; of: number };
 };
 
-/** Today's habits: tap to check, +/− for counts; warns before a second miss. */
+/** Today's habits: tap to check, +/− for counts. Shows "x of 7" — never a streak that resets. */
 export function HabitChecklist({ habits, showCue = false }: { habits: HabitItem[]; showCue?: boolean }) {
   if (habits.length === 0)
     return (
@@ -82,9 +82,7 @@ function HabitRow({ habit, showCue }: { habit: HabitItem; showCue: boolean }) {
       )}
       <div className="min-w-0 flex-1">
         <div className={cn("truncate text-[14px]", done && "text-fg-muted")}>{habit.title}</div>
-        {habit.streak.missedLast && !done ? (
-          <div className="text-[11.5px] font-medium text-accent">Missed last time — don&apos;t miss twice</div>
-        ) : showCue && habit.cue ? (
+        {showCue && habit.cue ? (
           <div className="truncate text-[11.5px] text-fg-subtle">{habit.cue}</div>
         ) : null}
       </div>
@@ -122,10 +120,9 @@ function HabitRow({ habit, showCue }: { habit: HabitItem; showCue: boolean }) {
           )}
         </div>
       )}
-      {habit.streak.current > 0 && (
-        <span className="flex items-center gap-0.5 text-[12px] font-medium text-fg-muted" title={`${habit.streak.current}-${habit.streak.unit} streak`}>
-          <Flame className="size-3.5 text-accent" />
-          {habit.streak.current}
+      {habit.recent.of > 0 && (
+        <span className="tabular text-[12px] text-fg-subtle" title={`Done ${habit.recent.done} of the last ${habit.recent.of} times it was planned`}>
+          {habit.recent.done} of {habit.recent.of}
         </span>
       )}
     </li>

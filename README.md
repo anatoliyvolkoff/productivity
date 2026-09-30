@@ -106,22 +106,32 @@ Pick your city in **Settings → Location**. Weather comes from [Open-Meteo](htt
 
 ## Features
 
+Built to be calm and shame-free for neurodivergent brains: it tells you what to do next. The core loop is **Dump → (Sort) → What now? → Focus → Done / Not now → What now?** There are no streaks that reset, no red overdue counts and no scores.
+
 | Area | What it does |
 |---|---|
-| Dashboard | Daily brief, clock, running timer, today's rings, weather, top 3, habits, sleep, timeline, energy curve, goals, mood, weekly KPIs |
+| What now? (home) | Asks your energy (low / okay / high) and your time, then shows **one** task. **Start** opens full-screen focus, **Not now** lets it drift back and rest for 3 hours, **Already done** drops it into the done jar |
+| Dump bar | Always at the top. Type or say a thought (mic, where the browser supports it), press Enter, and it floats into the inbox. `/` focuses it |
+| Break it down | Claude turns a task into tiny first steps. **I'm stuck** keeps splitting the current step into smaller ones. There's a gentle generic version without an API key |
+| Focus mode | Full screen: one task, its next step, a slowly breathing background, and a horizon light that crosses the screen instead of a countdown. Time is shown in words ("about halfway"). `Esc` minimizes and keeps the session running |
+| Done jar | Fills up through the day with what you finished. Celebration style is quiet, soft glow or confetti |
+| Daily reminders | "Did I take it?" for meds: one tap logs the time, so you never double up. Shows "6 of the last 7 days". It nudges you while the app is open, and can create a daily Google Calendar event that alerts your phone |
+| Whenever drawer | Past-date tasks rest here quietly and ask "still relevant?" (today / next week / no date / let it go) |
+| Sensory & comfort | Calm / gentle / playful motion (calm is the default; the system's reduced-motion setting always wins), low-stimulation colors, easy-read font (Lexend), letter spacing, text size, read aloud |
+| Overview | The full dashboard: daily brief, clock, rings, weather, top 3, habits, sleep, timeline, energy curve, goals, mood, weekly trends |
 | Today | Top 3, timeline, energy curve, habits with cues, daily note, evening shutdown |
 | Tasks | Natural quick add (`Call Anna fri 10am #work !2 ~30m`), priorities, tags, top-3 limit, Eisenhower matrix |
 | Brain dump | Capture everything, triage to task/note/goal/habit (or AI suggestions) |
 | Focus | Pomodoro, 52/17, 90-minute sessions; distraction parking; focus rating; breaks; time tracking |
 | Calendar | Day/week/month, Google sync, time-block suggestions in free slots (high-energy tasks at your peak) |
-| Habits | Yes/no, count, minutes; cues and stacks; never-miss-twice streaks; strength; 66-day formation; heatmaps |
+| Habits | Yes/no, count, minutes; cues and stacks; "5 of the last 7" instead of streaks; strength; 66-day formation; heatmaps |
 | Goals | Vision → year → quarter → month; progress from milestones, numbers, tasks or habits vs expected pace |
 | Mood | Energy × pleasantness check-in with emotion words, context and regulation ideas |
 | Sleep | Manual log; debt, regularity (SRI), social jet lag, chronotype; what affects your sleep |
 | Insights | KPIs vs prior weeks, charts, correlation explorer, time by tag, AI weekly review |
 | Settings | Targets, location, Google, AI status, tags, JSON export/import |
 
-Keyboard: `⌘K`/`Ctrl+K` command palette · `N` new task · `B` brain dump · `F` focus · `M` mood · `L` sleep · `G` then `D/T/K/C/H/O/N/I/S` to jump · `?` all shortcuts.
+Keyboard: `/` dump a thought · `⌘K`/`Ctrl+K` command palette · `N` new task · `B` brain dump inbox · `F` focus · `M` mood · `L` sleep · `G` then `W` (What now?), `D` (Overview), `T/K/C/H/O/N/I/S` to jump · `?` all shortcuts.
 
 ## Development
 

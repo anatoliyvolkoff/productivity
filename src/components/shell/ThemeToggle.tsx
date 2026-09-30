@@ -7,10 +7,7 @@ type Theme = "system" | "light" | "dark";
 const ORDER: Theme[] = ["system", "light", "dark"];
 const ICONS = { system: Monitor, light: Sun, dark: Moon };
 
-export const THEME_STORAGE_KEY = "pos-theme";
-
-/** Runs before paint (inlined in <head>) so the saved theme never flashes. */
-export const themeInitScript = `try{var t=localStorage.getItem("${THEME_STORAGE_KEY}");if(t==="light"||t==="dark")document.documentElement.dataset.theme=t}catch(e){}`;
+import { THEME_STORAGE_KEY } from "@/lib/theme-init";
 
 function applyTheme(theme: Theme) {
   const root = document.documentElement;

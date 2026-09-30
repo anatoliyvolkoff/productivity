@@ -6,7 +6,8 @@ import { openGlobalQuickAdd } from "@/components/tasks/TaskEditor";
 import { Dialog } from "@/components/ui/Dialog";
 
 const GO: Record<string, { href: string; label: string }> = {
-  d: { href: "/", label: "Dashboard" },
+  w: { href: "/", label: "What now?" },
+  d: { href: "/overview", label: "Overview" },
   t: { href: "/today", label: "Today" },
   k: { href: "/tasks", label: "Tasks" },
   c: { href: "/calendar", label: "Calendar" },

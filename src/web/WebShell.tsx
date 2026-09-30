@@ -10,7 +10,9 @@ import { Toaster } from "@/components/ui/toast";
 import { getConnection } from "@/lib/db";
 import { getRunningSession, getRunningTimer } from "@/lib/services/focus";
 import { goalOptions } from "@/lib/services/goals";
+import { listReminders } from "@/lib/services/reminders";
 import { listTags } from "@/lib/services/tags";
+import { ReminderNotifier } from "@/components/reminders/ReminderNotifier";
 import { REFRESH_EVENT } from "./refresh";
 
 type ShellData = {
@@ -18,6 +20,7 @@ type ShellData = {
   tags: string[];
   session: Awaited<ReturnType<typeof getRunningSession>>;
   timer: Awaited<ReturnType<typeof getRunningTimer>>;
+  reminders: Awaited<ReturnType<typeof listReminders>>;
 };
 
 /** Browser build: the app shell, with the in-browser database opened first. */
@@ -30,8 +33,8 @@ export function WebShell({ children }: { children: React.ReactNode }) {
     const load = async () => {
       try {
         await getConnection();
-        const [goals, tags, session, timer] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer()]);
-        if (!cancelled) setData({ goals, tags: tags.map((t) => t.name), session, timer });
+        const [goals, tags, session, timer, reminders] = await Promise.all([goalOptions(), listTags(), getRunningSession(), getRunningTimer(), listReminders()]);
+        if (!cancelled) setData({ goals, tags: tags.map((t) => t.name), session, timer, reminders });
       } catch (e) {
         console.error(e);
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
@@ -76,6 +79,7 @@ export function WebShell({ children }: { children: React.ReactNode }) {
       <CommandPalette />
       <KeyboardShortcuts />
       <Toaster />
+      <ReminderNotifier reminders={data.reminders} />
     </TaskEditorProvider>
   );
 }

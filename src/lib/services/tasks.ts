@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, gte, inArray, isNotNull, lt, lte, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lt, ne, notInArray, or, sql, type SQL } from "drizzle-orm";
 import { getDb } from "@/lib/db";
 import { goals, tasks, timeEntries, type NewTask, type Task } from "@/lib/db/schema";
 import { addDaysISO, fromISODate, toISODate, todayISO, type ISODate } from "@/lib/domain/dates";
@@ -13,7 +13,7 @@ export type TaskRow = Task & {
   score: number;
 };
 
-export type TaskView = "today" | "upcoming" | "open" | "inbox" | "waiting" | "done";
+export type TaskView = "today" | "upcoming" | "open" | "inbox" | "waiting" | "done" | "whenever";
 
 const OPEN: Task["status"][] = ["inbox", "next", "active", "waiting"];
 
@@ -35,7 +35,15 @@ export async function listTasks(options: {
     case "today":
       where.push(
         inArray(tasks.status, OPEN),
-        or(eq(tasks.mitOn, today), lte(tasks.dueDate, today), eq(tasks.status, "active"))!,
+        or(eq(tasks.mitOn, today), eq(tasks.dueDate, today), eq(tasks.status, "active"))!,
+      );
+      break;
+    case "whenever":
+      // Past their date and not picked for today: they wait quietly, no red.
+      where.push(
+        inArray(tasks.status, ["inbox", "next", "waiting"]),
+        lt(tasks.dueDate, today),
+        or(isNull(tasks.mitOn), ne(tasks.mitOn, today))!,
       );
       break;
     case "upcoming":
@@ -178,6 +186,12 @@ export async function updateTask(id: string, patch: Partial<TaskInput>): Promise
 
 export async function setTaskDone(id: string, done: boolean): Promise<Task> {
   return updateTask(id, { status: done ? "done" : "next" });
+}
+
+/** "Not now": the task drifts back into the pool and rests for a few hours. */
+export async function markNotNow(id: string): Promise<void> {
+  const db = await getDb();
+  await db.update(tasks).set({ notNowAt: new Date() }).where(eq(tasks.id, id));
 }
 
 export async function deleteTask(id: string): Promise<void> {

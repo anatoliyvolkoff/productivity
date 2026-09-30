@@ -28,9 +28,10 @@ export async function getDayContext(date: ISODate = todayISO()) {
   const profile = await getProfile();
   const isToday = date === todayISO(now);
 
-  const [tasks, mits, events, next, runningSession, runningTimer, sessions, entries, habits, mood, sleep, goals] = await Promise.all([
+  const [tasks, mits, whenever, events, next, runningSession, runningTimer, sessions, entries, habits, mood, sleep, goals] = await Promise.all([
     listTasks({ view: "today", today: date }),
     listTasks({ mitOn: date, today: date }),
+    listTasks({ view: "whenever", today: date }),
     eventsForDay(date),
     isToday ? nextEvent(now) : Promise.resolve(null),
     getRunningSession(),
@@ -55,6 +56,9 @@ export async function getDayContext(date: ISODate = todayISO()) {
     profile,
     mits,
     otherTasks,
+    /** Past their date; waiting quietly in the Whenever drawer. */
+    whenever,
+    wheneverCount: whenever.length,
     events,
     nextEvent: next,
     runningSession,

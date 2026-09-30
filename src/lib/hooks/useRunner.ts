@@ -3,6 +3,7 @@
 import { useCallback, useTransition } from "react";
 import { toast } from "@/components/ui/toast";
 import type { ActionResult } from "@/lib/actions";
+import { trackWrite } from "@/lib/pendingWrites";
 
 /** Run a server action in a transition; show errors (and optional success) as toasts. */
 export function useRunner() {
@@ -11,7 +12,7 @@ export function useRunner() {
   const run = useCallback(
     <T,>(fn: () => Promise<ActionResult<T>>, options: { success?: string; onSuccess?: (data: T) => void } = {}) => {
       startTransition(async () => {
-        const result = await fn();
+        const result = await trackWrite(fn());
         if (!result.ok) {
           toast.error(result.error);
           return;

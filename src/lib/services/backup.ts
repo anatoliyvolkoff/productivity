@@ -11,6 +11,7 @@ const TABLES: Array<[string, PgTable]> = [
   ["goals", s.goals],
   ["milestones", s.milestones],
   ["tasks", s.tasks],
+  ["taskSteps", s.taskSteps],
   ["habits", s.habits],
   ["habitLogs", s.habitLogs],
   ["calendars", s.calendars],
@@ -22,6 +23,8 @@ const TABLES: Array<[string, PgTable]> = [
   ["moodEntries", s.moodEntries],
   ["sleepEntries", s.sleepEntries],
   ["aiSummaries", s.aiSummaries],
+  ["reminders", s.reminders],
+  ["reminderLogs", s.reminderLogs],
 ];
 
 export type Backup = { app: "productivity-os"; version: 1; exportedAt: string; data: Record<string, unknown[]> };

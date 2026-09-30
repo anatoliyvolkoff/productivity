@@ -55,7 +55,7 @@ function TaskItem({
   const today = todayISO();
   const [done, setDone] = useOptimistic(task.status === "done");
   const isMit = task.mitOn === today;
-  const overdue = task.dueDate !== null && task.dueDate < today && !done;
+  const whenever = task.dueDate !== null && task.dueDate < today && !done;
 
   return (
     <li
@@ -87,9 +87,9 @@ function TaskItem({
           <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[12px] text-fg-muted">
             {task.priority <= 2 && <PriorityFlag priority={task.priority} showLabel />}
             {task.dueDate && (
-              <span className={cn("inline-flex items-center gap-1", overdue && "font-medium text-danger")}>
+              <span className="inline-flex items-center gap-1" title={whenever ? `Was planned for ${task.dueDate}` : undefined}>
                 <CalendarDays className="size-3.5" />
-                {relativeDayLabel(task.dueDate, today)}
+                {whenever ? "Whenever" : relativeDayLabel(task.dueDate, today)}
               </span>
             )}
             {task.goalTitle && (

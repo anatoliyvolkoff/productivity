@@ -35,7 +35,7 @@ export function GoalsCard({ goals }: { goals: GoalView[] }) {
                 <ProgressBar value={g.progress} expected={g.expected} color={g.color ?? "var(--series-1)"} />
                 <div className="mt-1 flex justify-between text-[12px] text-fg-muted">
                   <span>{g.progress >= 0.7 && g.progress < 1 ? `Only ${left}% to go` : `${Math.round(g.progress * 100)}%`}</span>
-                  {g.daysLeft !== null && <span>{g.daysLeft >= 0 ? `${g.daysLeft} days left` : `${-g.daysLeft} days overdue`}</span>}
+                  {g.daysLeft !== null && <span>{g.daysLeft >= 0 ? `${g.daysLeft} days left` : "Past its date — adjust whenever"}</span>}
                 </div>
               </li>
             );
