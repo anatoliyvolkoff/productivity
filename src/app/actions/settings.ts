@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { attempt } from "@/lib/actions";
-import { importAll, type Backup } from "@/lib/services/backup";
+import { exportAll, importAll, type Backup } from "@/lib/services/backup";
 import { updateProfile, type ProfilePatch } from "@/lib/services/profile";
 import { deleteTag, renameTag, setTagColor } from "@/lib/services/tags";
 import { searchPlaces } from "@/lib/services/weather";
@@ -33,6 +33,11 @@ export async function removeTag(name: string) {
   const result = await attempt(() => deleteTag(name));
   refresh();
   return result;
+}
+
+/** Everything as JSON (Google tokens excluded), for download. */
+export async function exportBackup() {
+  return attempt(() => exportAll());
 }
 
 export async function importBackup(json: string) {

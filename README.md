@@ -36,6 +36,20 @@ pm2 save && pm2 startup   # start automatically when the computer boots (follow 
 
 The server listens on `127.0.0.1` only, because the app has no login — your data is only reachable from this computer. `npm run start:lan` listens on your network instead (anyone on it can then open the app).
 
+## Online version (GitHub Pages)
+
+**https://anatoliyvolkoff.github.io/productivity/**
+
+A browser-only build of the same app. There's no server: the database (Postgres compiled to WebAssembly) lives in your browser's IndexedDB, so your data stays on that device and in that browser. Other devices and private windows start empty.
+
+- **Back up** regularly with **Settings → Your data → Export JSON**. Clearing site data in the browser erases it. Move data between devices with **Import backup**.
+- **AI brief:** paste your Anthropic API key in **Settings**. It's stored only in this browser and sent only to Anthropic.
+- **Google Calendar** needs a server, so it's unavailable here. Use the local or Vercel version for calendar sync.
+
+Every push to `main` (or the current development branch) rebuilds and publishes it with `.github/workflows/pages.yml`, which runs `npm run build:web` and pushes the result to the `gh-pages` branch. To build it yourself, run `npm run build:web`. The output lands in `out-web/`, and `BASE_PATH` sets the URL prefix (default `/productivity`).
+
+If the address shows a 404 after the first deploy, go to **Settings → Pages** and set **Source: Deploy from a branch → `gh-pages` / root**.
+
 ## Put it online (Vercel + Supabase)
 
 Open the app from any device — phone included — at your own private address. Both services have free tiers.

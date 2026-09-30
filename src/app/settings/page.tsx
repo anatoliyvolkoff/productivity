@@ -1,9 +1,10 @@
 import { Database, Sparkles } from "lucide-react";
-import { BackupCard, GoogleSettings, LocationForm, ProfileForm, TagManager } from "@/components/settings/SettingsForms";
+import { AiKeyForm, BackupCard, GoogleSettings, LocationForm, ProfileForm, TagManager } from "@/components/settings/SettingsForms";
 import { logout } from "@/app/actions/auth";
 import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { authEnabled } from "@/lib/auth";
+import { IS_WEB } from "@/lib/platform";
 import { Badge } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getConnection } from "@/lib/db";
@@ -37,18 +38,22 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
         <div className="flex flex-col gap-4">
           <Card title="Database" action={<Database className="size-4 text-fg-subtle" />}>
             <div className="flex items-center gap-2 text-[14px]">
-              <Badge tone={conn.kind === "supabase" ? "success" : "primary"}>{conn.kind === "supabase" ? "Supabase" : "Local"}</Badge>
+              <Badge tone={conn.kind === "supabase" ? "success" : "primary"}>{conn.kind === "supabase" ? "Supabase" : conn.kind === "browser" ? "This browser" : "Local"}</Badge>
               <span className="truncate font-mono text-[12px] text-fg-muted">{conn.location}</span>
             </div>
             <p className="mt-2 text-[12.5px] text-fg-muted">
-              {conn.kind === "supabase"
+              {conn.kind === "browser"
+                ? "Everything is stored only in this browser (IndexedDB) — nothing is sent to a server. Export regularly as a backup; clearing site data erases it."
+                : conn.kind === "supabase"
                 ? "Connected through DATABASE_URL. Your data lives in your Supabase project."
                 : "Using the embedded database on this computer. To use Supabase, set DATABASE_URL in .env.local and restart — export here first, then import there."}
             </p>
           </Card>
           <GoogleSettings status={google} targetCalendar={profile.googleCalendarId} />
           <Card title="AI" action={<Sparkles className="size-4 text-fg-subtle" />}>
-            {aiConfigured() ? (
+            {IS_WEB ? (
+              <AiKeyForm configured={aiConfigured()} />
+            ) : aiConfigured() ? (
               <p className="text-[13.5px]">
                 <Badge tone="success">Connected</Badge> <span className="ml-1 text-fg-muted">Model</span> <code className="font-mono text-[12px]">{AI_MODEL}</code>
               </p>

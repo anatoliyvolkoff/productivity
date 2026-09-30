@@ -12,6 +12,7 @@ import { RelativeTime } from "@/components/ui/RelativeTime";
 import { SegmentedLinks } from "@/components/ui/Segmented";
 import { addDaysISO, formatMinutes, fromISODate, toISODate, type ISODate } from "@/lib/domain/dates";
 import { useRunner } from "@/lib/hooks/useRunner";
+import { IS_WEB } from "@/lib/platform";
 import { EventDialog } from "./EventDialog";
 import { MonthGrid } from "./MonthGrid";
 import { TimeGrid } from "./TimeGrid";
@@ -153,7 +154,9 @@ export function CalendarView({
           </Card>
 
           <Card title="Google Calendar">
-            {!google.configured ? (
+            {IS_WEB ? (
+              <p className="text-[13px] text-fg-muted">Google sync isn&apos;t available in the browser version — it needs a server to keep its keys secret.</p>
+            ) : !google.configured ? (
               <p className="text-[13px] text-fg-muted">
                 To sync, add <code className="font-mono text-[12px]">GOOGLE_CLIENT_ID</code> and <code className="font-mono text-[12px]">GOOGLE_CLIENT_SECRET</code> to <code className="font-mono text-[12px]">.env.local</code> (see the README), then restart.
               </p>

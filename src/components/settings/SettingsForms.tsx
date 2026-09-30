@@ -1,15 +1,18 @@
 "use client";
 
 import { MapPin, Search, Trash2, Upload } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { toast } from "@/components/ui/toast";
 import { disconnectCalendar, syncCalendar, toggleCalendar } from "@/app/actions/calendar";
-import { findPlaces, importBackup, recolorTag, removeTag, renameTagAction, saveProfile } from "@/app/actions/settings";
+import { exportBackup, findPlaces, importBackup, recolorTag, removeTag, renameTagAction, saveProfile } from "@/app/actions/settings";
 import { HABIT_COLORS } from "@/components/habits/HabitDialog";
 import { Button, buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field, Input, Select } from "@/components/ui/Field";
 import { RelativeTime } from "@/components/ui/RelativeTime";
 import type { Profile } from "@/lib/db/schema";
+import { IS_WEB, setWebSecret } from "@/lib/platform";
 import { useRunner } from "@/lib/hooks/useRunner";
 
 export function ProfileForm({ profile }: { profile: Profile }) {
@@ -131,7 +134,11 @@ export function GoogleSettings({
   const { pending, run } = useRunner();
   return (
     <Card title="Google Calendar" id="google">
-      {!status.configured ? (
+      {IS_WEB ? (
+        <p className="text-[13px] text-fg-muted">
+          Google sync needs a server to keep its keys secret, so it isn&apos;t available in the browser version. Your calendar here works on its own; run the app on your computer or Vercel to sync with Google.
+        </p>
+      ) : !status.configured ? (
         <div className="text-[13px] text-fg-muted">
           <p>To connect, create an OAuth client in Google Cloud and put its keys in <code className="font-mono text-[12px]">.env.local</code>:</p>
           <ol className="mt-2 list-decimal space-y-1 pl-5">
@@ -272,9 +279,25 @@ export function BackupCard({ counts }: { counts: Record<string, number> }) {
         {total.toLocaleString()} records · {counts.tasks ?? 0} tasks, {counts.habitLogs ?? 0} habit logs, {counts.focusSessions ?? 0} focus sessions, {counts.moodEntries ?? 0} check-ins, {counts.sleepEntries ?? 0} nights.
       </p>
       <div className="flex gap-2">
-        <a href="/api/export" className={buttonClass("secondary", "sm")} download>
+        <Button
+          size="sm"
+          variant="secondary"
+          disabled={pending}
+          onClick={() =>
+            run(() => exportBackup(), {
+              onSuccess: (backup) => {
+                const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: "application/json" }));
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `productivity-os-${backup.exportedAt.slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+              },
+            })
+          }
+        >
           Export JSON
-        </a>
+        </Button>
         <Button size="sm" variant="ghost" disabled={pending} onClick={() => fileRef.current?.click()}>
           <Upload className="size-3.5" /> Import backup…
         </Button>
@@ -295,5 +318,34 @@ export function BackupCard({ counts }: { counts: Record<string, number> }) {
       </div>
       <p className="mt-2 text-[12px] text-fg-subtle">Exports exclude Google sign-in tokens. Tip: export before switching databases, then import on the new one.</p>
     </Card>
+  );
+}
+
+/** Browser version: the Anthropic key is kept in this browser's storage only. */
+export function AiKeyForm({ configured }: { configured: boolean }) {
+  const router = useRouter();
+  const [key, setKey] = useState("");
+  return (
+    <div className="flex flex-col gap-2 text-[13px]">
+      <p className="text-fg-muted">
+        {configured ? "An API key is saved in this browser." : "Paste an Anthropic API key (console.anthropic.com) to turn on the AI brief, summaries, weekly review and brain-dump sorting."} It stays in this browser and is sent only to Anthropic.
+      </p>
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          setWebSecret("ANTHROPIC_API_KEY", key);
+          setKey("");
+          router.refresh();
+          window.dispatchEvent(new Event("pos:refresh"));
+          toast(key.trim() ? "API key saved" : "API key removed");
+        }}
+      >
+        <Input type="password" value={key} onChange={(e) => setKey(e.target.value)} placeholder={configured ? "Replace key…" : "sk-ant-…"} autoComplete="off" />
+        <Button type="submit" variant="primary" size="sm">
+          {key.trim() || !configured ? "Save" : "Remove"}
+        </Button>
+      </form>
+    </div>
   );
 }

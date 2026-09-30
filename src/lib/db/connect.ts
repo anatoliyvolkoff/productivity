@@ -16,7 +16,7 @@ import * as schema from "./schema";
 export type AppDb = PgDatabase<PgQueryResultHKT, typeof schema>;
 
 export type Connection = {
-  kind: "supabase" | "local";
+  kind: "supabase" | "local" | "browser";
   /** Human-readable location: database host or local folder. */
   location: string;
   db: AppDb;

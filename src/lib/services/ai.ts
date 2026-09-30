@@ -4,6 +4,7 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { getDb } from "@/lib/db";
+import { IS_WEB, secret } from "@/lib/platform";
 import { aiSummaries, type AiSummary } from "@/lib/db/schema";
 import { addDaysISO, formatMinutes, minutesToHHMM, todayISO, toISODate, type ISODate } from "@/lib/domain/dates";
 import { energyLabel } from "@/lib/domain/energy";
@@ -19,15 +20,16 @@ import { listTasks } from "./tasks";
  * Model and effort are configurable with AI_MODEL / AI_EFFORT.
  */
 
-export const AI_MODEL = process.env.AI_MODEL?.trim() || "claude-opus-5-5";
-const EFFORT = (process.env.AI_EFFORT?.trim() || "medium") as "low" | "medium" | "high" | "xhigh" | "max";
+export const AI_MODEL = secret("AI_MODEL") || "claude-opus-5-5";
+const EFFORT = (secret("AI_EFFORT") || "medium") as "low" | "medium" | "high" | "xhigh" | "max";
 
 export function aiConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY?.trim() || process.env.ANTHROPIC_AUTH_TOKEN?.trim());
+  return Boolean(secret("ANTHROPIC_API_KEY") || secret("ANTHROPIC_AUTH_TOKEN"));
 }
 
 let client: Anthropic | null = null;
-const anthropic = () => (client ??= new Anthropic());
+// In the browser build the key comes from this browser's storage (Settings → AI).
+const anthropic = () => (IS_WEB ? new Anthropic({ apiKey: secret("ANTHROPIC_API_KEY"), dangerouslyAllowBrowser: true }) : (client ??= new Anthropic()));
 
 // ─── Schemas ────────────────────────────────────────────────────────────────
 
@@ -105,7 +107,7 @@ Use findings from neuroscience and behavioral science where they genuinely help 
 Write plainly and briefly, like a sharp, kind coach. Use the person's name if one is given. Times are local, 24-hour.`;
 
 async function generate<T>(schema: z.ZodType<T>, system: string, data: unknown): Promise<T> {
-  if (!aiConfigured()) throw new Error("Add ANTHROPIC_API_KEY to .env.local to use AI summaries.");
+  if (!aiConfigured()) throw new Error(IS_WEB ? "Add your Anthropic API key in Settings → AI." : "Add ANTHROPIC_API_KEY to .env.local to use AI summaries.");
   try {
     const response = await anthropic().beta.messages.parse({
       model: AI_MODEL,
@@ -121,7 +123,7 @@ async function generate<T>(schema: z.ZodType<T>, system: string, data: unknown):
     if (!response.parsed_output) throw new Error("The AI returned something unexpected — try again.");
     return response.parsed_output as T;
   } catch (error) {
-    if (error instanceof Anthropic.AuthenticationError) throw new Error("ANTHROPIC_API_KEY was rejected — check the key in .env.local.");
+    if (error instanceof Anthropic.AuthenticationError) throw new Error(IS_WEB ? "The Anthropic API key was rejected — check it in Settings → AI." : "ANTHROPIC_API_KEY was rejected — check the key in .env.local.");
     if (error instanceof Anthropic.RateLimitError) throw new Error("The AI is rate-limited right now — try again in a minute.");
     if (error instanceof Anthropic.APIConnectionError) throw new Error("Couldn't reach the AI service — check your internet connection.");
     if (error instanceof Anthropic.APIError) throw new Error(`AI request failed (${error.status}).`);

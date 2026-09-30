@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Static (GitHub Pages) build output and its working copy.
+    "out-web/**",
+    ".web-build/**",
+    "src/lib/db/migrations.generated.ts",
   ]),
 ]);
 
