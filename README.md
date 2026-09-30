@@ -17,7 +17,7 @@ npm run setup          # install + production build (once, and after each update
 npm start              # → http://localhost:3000
 ```
 
-That's it — with no configuration the app stores everything in an embedded Postgres database in `.data/pglite` inside the project folder. Stop it with `Ctrl+C`.
+That's it — with no configuration (and no password, since it only listens on your own computer) the app stores everything in an embedded Postgres database in `.data/pglite` inside the project folder. Stop it with `Ctrl+C`.
 
 To try it with five weeks of sample data first (kept separate from your real data):
 
@@ -35,6 +35,29 @@ pm2 save && pm2 startup   # start automatically when the computer boots (follow 
 ```
 
 The server listens on `127.0.0.1` only, because the app has no login — your data is only reachable from this computer. `npm run start:lan` listens on your network instead (anyone on it can then open the app).
+
+## Put it online (Vercel + Supabase)
+
+Open the app from any device — phone included — at your own private address. Both services have free tiers.
+
+1. **Database:** create a [Supabase](https://supabase.com) project. In **Project Settings → Database → Connection string**, copy the **Transaction pooler** string (port 6543) and the **Session pooler** string (port 5432). Tables are created automatically on first start.
+2. **Deploy:** sign in to [vercel.com](https://vercel.com) with GitHub → **Add New → Project** → import `anatoliyvolkoff/productivity` → leave the build settings as detected.
+3. **Environment variables** (same screen, or later in **Settings → Environment Variables**):
+
+   | Name | Value |
+   |---|---|
+   | `DATABASE_URL` | Supabase transaction pooler string (6543) |
+   | `DATABASE_URL_DIRECT` | Supabase session pooler string (5432) |
+   | `APP_PASSWORD` | the password you'll type to open the app — **required online**, the app has no other login |
+   | `APP_TIMEZONE` | your time zone, e.g. `Europe/Berlin` (servers run on UTC) |
+   | `ANTHROPIC_API_KEY` | optional, for the AI brief |
+   | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | optional, for Google Calendar |
+
+4. Click **Deploy**. You get an address like `https://productivity-xxxx.vercel.app`; open it and enter your password.
+5. **Google Calendar online:** in your Google OAuth client add a second redirect URI: `https://<your-address>/api/google/callback`.
+6. **Moving your local data:** on your computer, **Settings → Your data → Export JSON**; online, **Import backup**.
+
+Every push to the branch redeploys automatically. If "today" looks wrong, the yellow banner at the top tells you which `APP_TIMEZONE` to set.
 
 ## Connect your services
 

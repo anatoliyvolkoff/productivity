@@ -27,6 +27,9 @@ const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 
 export async function openConnection(): Promise<Connection> {
   const url = process.env.DATABASE_URL?.trim();
+  if (!url && process.env.VERCEL) {
+    throw new Error("Set DATABASE_URL to your Supabase connection string — the embedded database can't keep data on Vercel.");
+  }
   return url ? openPostgres(url) : openLocal(process.env.LOCAL_DB_DIR?.trim() || path.join(process.cwd(), ".data", "pglite"));
 }
 
@@ -50,7 +53,7 @@ async function openPostgres(url: string): Promise<Connection> {
   }
 
   // `prepare: false` is required by Supabase's transaction pooler (port 6543).
-  const client = postgres(url, { prepare: false, max: Number(process.env.DATABASE_POOL_MAX) || 5, onnotice: () => {} });
+  const client = postgres(url, { prepare: false, max: Number(process.env.DATABASE_POOL_MAX) || (process.env.VERCEL ? 1 : 5), onnotice: () => {} });
   let location = "Postgres";
   try {
     location = new URL(url).hostname;

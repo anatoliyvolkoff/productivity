@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { PHASE_PRODUCTION_BUILD } from "next/constants";
+import { headers } from "next/headers";
 import { connection } from "next/server";
 import { GoogleAutoSync } from "@/components/calendar/GoogleAutoSync";
 import { CommandPalette } from "@/components/shell/CommandPalette";
@@ -8,6 +9,7 @@ import { DatabaseError } from "@/components/shell/DatabaseError";
 import { KeyboardShortcuts } from "@/components/shell/KeyboardShortcuts";
 import { Sidebar } from "@/components/shell/Sidebar";
 import { themeInitScript } from "@/components/shell/ThemeToggle";
+import { TimezoneCheck } from "@/components/shell/TimezoneCheck";
 import { TopBar } from "@/components/shell/TopBar";
 import { TaskEditorProvider } from "@/components/tasks/TaskEditor";
 import { Toaster } from "@/components/ui/toast";
@@ -44,6 +46,17 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   // Everything here is live personal data — render per request, never at build time.
   await connection();
 
+  const path = (await headers()).get("x-pos-path");
+  if (path === "/login") {
+    return (
+      <html lang="en" className={`${inter.variable} ${jetbrains.variable}`} suppressHydrationWarning>
+        <head>
+          <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+        </head>
+        <body>{children}</body>
+      </html>
+    );
+  }
   const shell = await loadShell();
   const body =
     !shell.ok ? (
@@ -53,6 +66,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <Sidebar />
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar session={shell.session} timer={shell.timer} />
+          <TimezoneCheck serverTz={Intl.DateTimeFormat().resolvedOptions().timeZone} />
           <main className="flex-1 px-8 py-6">{children}</main>
         </div>
         <CommandPalette />

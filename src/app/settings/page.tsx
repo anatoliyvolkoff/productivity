@@ -1,6 +1,9 @@
 import { Database, Sparkles } from "lucide-react";
 import { BackupCard, GoogleSettings, LocationForm, ProfileForm, TagManager } from "@/components/settings/SettingsForms";
+import { logout } from "@/app/actions/auth";
+import { buttonClass } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { authEnabled } from "@/lib/auth";
 import { Badge } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { getConnection } from "@/lib/db";
@@ -57,6 +60,16 @@ export default async function SettingsPage(props: PageProps<"/settings">) {
             <p className="mt-2 text-[12px] text-fg-subtle">You chose to let the AI read everything: tasks, notes, journal, mood notes and sleep. Nothing is sent unless you press an AI button.</p>
           </Card>
           <BackupCard counts={counts} />
+          {authEnabled() && (
+            <Card title="Sign-in">
+              <p className="mb-3 text-[13px] text-fg-muted">This copy is password-protected (APP_PASSWORD). Change the password in your hosting settings to sign out every device.</p>
+              <form action={logout}>
+                <button type="submit" className={buttonClass("secondary", "sm")}>
+                  Sign out
+                </button>
+              </form>
+            </Card>
+          )}
         </div>
       </div>
     </div>
