@@ -43,17 +43,6 @@ export function SleepChart({ nights, from, to, targetBed, targetWake }: { nights
             </text>
           </g>
         ))}
-        {[
-          { m: relClock(targetBed), label: "Target bed" },
-          { m: relClock(targetWake), label: "Target wake" },
-        ].map((t) => (
-          <g key={t.label}>
-            <line x1={pad.left} x2={W - pad.right} y1={y(t.m)} y2={y(t.m)} stroke="var(--fg-muted)" strokeWidth={1} />
-            <text x={W - pad.right} y={y(t.m) - 4} fontSize={10.5} textAnchor="end" fill="var(--fg-muted)">
-              {t.label}
-            </text>
-          </g>
-        ))}
         {days.map((d, i) => {
           const n = byDate.get(d);
           const cx = pad.left + slot * i + slot / 2;
@@ -86,6 +75,17 @@ export function SleepChart({ nights, from, to, targetBed, targetWake }: { nights
             </g>
           );
         })}
+        {[
+          { m: relClock(targetBed), label: "Target bed" },
+          { m: relClock(targetWake), label: "Target wake" },
+        ].map((t) => (
+          <g key={t.label}>
+            <line x1={pad.left} x2={W - pad.right} y1={y(t.m)} y2={y(t.m)} stroke="var(--fg-muted)" strokeWidth={1} />
+            <text x={W - pad.right} y={y(t.m) - 4} fontSize={10.5} textAnchor="end" fill="var(--fg-muted)" stroke="var(--surface)" strokeWidth={3} paintOrder="stroke">
+              {t.label}
+            </text>
+          </g>
+        ))}
       </svg>
       {hover && (
         <ChartTooltip

@@ -12,15 +12,16 @@ import { moodBetween, moodPerDay } from "./mood";
 import { sleepBetween } from "./sleep";
 import { listTasks, tasksDonePerDay } from "./tasks";
 
+/** One day of metrics; null means "no data" (e.g. before you started tracking). */
 export type DayMetrics = {
   date: ISODate;
-  focusMin: number;
+  focusMin: number | null;
   focusQuality: number | null;
-  trackedMin: number;
-  deepMin: number;
-  tasksDone: number;
+  trackedMin: number | null;
+  deepMin: number | null;
+  tasksDone: number | null;
   mitsSet: number;
-  mitsDone: number;
+  mitsDone: number | null;
   habitPct: number | null;
   sleepMin: number | null;
   sleepQuality: number | null;
@@ -77,9 +78,9 @@ export async function getInsights(days: number, today: ISODate = todayISO()) {
   const current = series.filter((d) => d.date >= from);
   const baseline = series.filter((d) => d.date < from);
 
-  const avg = (list: DayMetrics[], key: MetricKey) => {
+  const avg = (list: DayMetrics[], key: MetricKey, minDays = 1) => {
     const values = list.map((d) => d[key]).filter((v): v is number => v !== null);
-    return values.length ? mean(values) : null;
+    return values.length >= minDays ? mean(values) : null;
   };
 
   const kpiKeys: MetricKey[] = ["focusMin", "deepMin", "tasksDone", "habitPct", "sleepMin", "moodValence"];
@@ -87,7 +88,8 @@ export async function getInsights(days: number, today: ISODate = todayISO()) {
     key,
     ...METRICS[key],
     current: avg(current, key),
-    baseline: avg(baseline, key),
+    // A comparison needs at least five days of earlier data.
+    baseline: avg(baseline, key, 5),
     spark: current.map((d) => d[key]),
   }));
 
@@ -112,7 +114,7 @@ export async function getInsights(days: number, today: ISODate = todayISO()) {
     correlations,
     timeByTag: byTag,
     mood: emotions,
-    mitHitRate: mitsSet ? current.reduce((s, d) => s + d.mitsDone, 0) / mitsSet : null,
+    mitHitRate: mitsSet ? current.reduce((s, d) => s + (d.mitsDone ?? 0), 0) / mitsSet : null,
     records: {
       bestFocusDay: maxBy(series, "focusMin"),
       mostTasksDay: maxBy(series, "tasksDone"),
@@ -123,8 +125,12 @@ export async function getInsights(days: number, today: ISODate = todayISO()) {
 export type Insights = Awaited<ReturnType<typeof getInsights>>;
 
 function maxBy(series: DayMetrics[], key: "focusMin" | "tasksDone") {
-  const best = series.reduce<DayMetrics | null>((b, d) => (d[key] > (b?.[key] ?? 0) ? d : b), null);
-  return best ? { date: best.date, value: best[key] } : null;
+  let best: { date: ISODate; value: number } | null = null;
+  for (const d of series) {
+    const v = d[key];
+    if (v !== null && v > (best?.value ?? 0)) best = { date: d.date, value: v };
+  }
+  return best;
 }
 
 export async function dailyMetrics(from: ISODate, to: ISODate): Promise<DayMetrics[]> {
@@ -146,7 +152,21 @@ export async function dailyMetrics(from: ISODate, to: ISODate): Promise<DayMetri
   const mood = moodPerDay(moods);
   const sleepByDate = new Map(sleep.map((s) => [s.date, s]));
 
+  // Days before anything was recorded are "no data", not zeros.
+  const activeDates = [
+    ...sessions.map((s) => toISODate(s.startedAt)),
+    ...entries.map((e) => toISODate(e.startedAt)),
+    ...done.keys(),
+    ...sleep.map((s) => s.date),
+    ...moods.map((m) => toISODate(m.at)),
+    ...habits.flatMap((h) => Object.keys(h.values)),
+  ].sort();
+  const firstDay = activeDates[0] ?? to;
+
   return span.map((date) => {
+    if (date < firstDay) {
+      return { date, focusMin: null, focusQuality: null, trackedMin: null, deepMin: null, tasksDone: null, mitsSet: 0, mitsDone: null, habitPct: null, sleepMin: null, sleepQuality: null, moodValence: null, moodEnergy: null };
+    }
     const daySessions = sessions.filter((s) => toISODate(s.startedAt) === date);
     const qualities = daySessions.map((s) => s.quality).filter((q): q is number => q !== null);
     const dayEntries = entries.filter((e) => toISODate(e.startedAt) === date);

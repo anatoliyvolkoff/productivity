@@ -90,3 +90,43 @@ export function estimateChronotype(entries: SleepLike[]): Chronotype | null {
   if (msf > 300) return "owl";
   return "intermediate";
 }
+
+export const SLEEP_FACTORS = [
+  { key: "caffeineLate", label: "Late caffeine" },
+  { key: "alcohol", label: "Alcohol" },
+  { key: "screensLate", label: "Screens before bed" },
+  { key: "exercise", label: "Exercise" },
+  { key: "stress", label: "Stressful day" },
+] as const;
+
+export type FactorKey = (typeof SLEEP_FACTORS)[number]["key"];
+
+export type FactorEffect = { key: FactorKey; label: string; withN: number; withoutN: number; minutesDiff: number; qualityDiff: number | null };
+
+/**
+ * Your nights with a factor vs without it: difference in minutes asleep and in
+ * quality. Needs at least 3 nights on each side. Observational — not causal.
+ */
+export function factorEffects(entries: Array<SleepLike & { quality: number | null; factors: Partial<Record<FactorKey, boolean>> | null }>): FactorEffect[] {
+  const out: FactorEffect[] = [];
+  for (const f of SLEEP_FACTORS) {
+    const yes = entries.filter((e) => e.factors?.[f.key]);
+    const no = entries.filter((e) => !e.factors?.[f.key]);
+    if (yes.length < 3 || no.length < 3) continue;
+    const avg = (list: typeof entries, fn: (e: (typeof entries)[number]) => number | null) => {
+      const values = list.map(fn).filter((v): v is number => v !== null);
+      return values.length ? values.reduce((s, v) => s + v, 0) / values.length : null;
+    };
+    const qYes = avg(yes, (e) => e.quality);
+    const qNo = avg(no, (e) => e.quality);
+    out.push({
+      key: f.key,
+      label: f.label,
+      withN: yes.length,
+      withoutN: no.length,
+      minutesDiff: Math.round(avg(yes, asleepMinutes)! - avg(no, asleepMinutes)!),
+      qualityDiff: qYes !== null && qNo !== null ? Math.round((qYes - qNo) * 10) / 10 : null,
+    });
+  }
+  return out.sort((a, b) => Math.abs(b.minutesDiff) - Math.abs(a.minutesDiff));
+}

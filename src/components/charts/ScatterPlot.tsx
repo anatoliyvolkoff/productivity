@@ -41,7 +41,7 @@ export function ScatterPlot({
             <text x={pad.left - 6} y={y(y0 + f * (y1 - y0)) + 4} fontSize={11} textAnchor="end" fill="var(--fg-subtle)" className="tabular">
               {formatY(y0 + f * (y1 - y0))}
             </text>
-            <text x={x(x0 + f * (x1 - x0))} y={H - 20} fontSize={11} textAnchor="middle" fill="var(--fg-subtle)" className="tabular">
+            <text x={x(x0 + f * (x1 - x0))} y={H - 20} fontSize={11} textAnchor={f === 0 ? "start" : f === 1 ? "end" : "middle"} fill="var(--fg-subtle)" className="tabular">
               {formatX(x0 + f * (x1 - x0))}
             </text>
           </g>

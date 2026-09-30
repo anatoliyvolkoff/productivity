@@ -139,3 +139,21 @@ describe("mood", () => {
     expect(emotionsNear(-1, -1)[0].word).toBe("Meh");
   });
 });
+
+describe("sleep factor effects", () => {
+  it("compares nights with and without a factor", async () => {
+    const { factorEffects } = await import("./sleep");
+    const mk = (date: string, hours: number, screens: boolean, quality: number) => {
+      const wakeAt = new Date(`${date}T07:00:00`);
+      return { date, bedAt: new Date(wakeAt.getTime() - hours * 3_600_000), wakeAt, latencyMin: 0, quality, factors: { screensLate: screens } };
+    };
+    const nights = [
+      mk("2026-09-01", 6, true, 2), mk("2026-09-02", 6.5, true, 3), mk("2026-09-03", 6, true, 2),
+      mk("2026-09-04", 8, false, 4), mk("2026-09-05", 7.5, false, 4), mk("2026-09-06", 8, false, 5),
+    ];
+    const [screens] = factorEffects(nights);
+    expect(screens).toMatchObject({ key: "screensLate", withN: 3, withoutN: 3, minutesDiff: -100 });
+    expect(screens.qualityDiff).toBeCloseTo(-2);
+    expect(factorEffects(nights.slice(0, 4))).toEqual([]);
+  });
+});

@@ -15,6 +15,7 @@ export function StatTile({
   spark,
   formatDelta = (d: number) => `${d > 0 ? "+" : ""}${Math.round(d)}%`,
   flatBelow = 0.5,
+  caption,
 }: {
   label: string;
   value: string;
@@ -24,6 +25,8 @@ export function StatTile({
   spark?: Array<number | null>;
   formatDelta?: (d: number) => string;
   flatBelow?: number;
+  /** Shown instead of the delta row when there is nothing to compare against. */
+  caption?: string;
 }) {
   const hasDelta = delta !== undefined && delta !== null && Number.isFinite(delta);
   const flat = hasDelta && Math.abs(delta) < flatBelow;
@@ -45,7 +48,9 @@ export function StatTile({
             </span>
             <span className="text-fg-subtle">{deltaLabel}</span>
           </>
-        ) : (
+        ) : caption !== undefined ? (
+          <span className="text-fg-subtle">{caption}</span>
+        ) : delta === undefined ? null : (
           <span className="text-fg-subtle">No earlier data yet</span>
         )}
       </div>
