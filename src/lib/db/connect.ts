@@ -12,6 +12,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
 import * as schema from "./schema";
+import { normalizeDatabaseUrl } from "./url";
 
 export type AppDb = PgDatabase<PgQueryResultHKT, typeof schema>;
 
@@ -26,11 +27,11 @@ export type Connection = {
 const MIGRATIONS_FOLDER = path.join(process.cwd(), "drizzle");
 
 export async function openConnection(): Promise<Connection> {
-  const url = process.env.DATABASE_URL?.trim();
-  if (!url && process.env.VERCEL) {
+  const raw = process.env.DATABASE_URL?.trim();
+  if (!raw && process.env.VERCEL) {
     throw new Error("Set DATABASE_URL to your Supabase connection string — the embedded database can't keep data on Vercel.");
   }
-  return url ? openPostgres(url) : openLocal(process.env.LOCAL_DB_DIR?.trim() || path.join(process.cwd(), ".data", "pglite"));
+  return raw ? openPostgres(normalizeDatabaseUrl(raw)) : openLocal(process.env.LOCAL_DB_DIR?.trim() || path.join(process.cwd(), ".data", "pglite"));
 }
 
 async function openPostgres(url: string): Promise<Connection> {
@@ -41,7 +42,8 @@ async function openPostgres(url: string): Promise<Connection> {
   ]);
 
   // Migrations prefer the direct/session connection; the app uses the pooler.
-  const migrationClient = postgres(process.env.DATABASE_URL_DIRECT?.trim() || url, {
+  const direct = process.env.DATABASE_URL_DIRECT?.trim();
+  const migrationClient = postgres(direct ? normalizeDatabaseUrl(direct, "DATABASE_URL_DIRECT") : url, {
     max: 1,
     prepare: false,
     onnotice: () => {},
