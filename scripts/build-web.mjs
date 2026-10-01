@@ -120,6 +120,8 @@ execSync("npx next build", {
 rmSync(out, { recursive: true, force: true });
 cpSync(path.join(work, "out"), out, { recursive: true });
 writeFileSync(path.join(out, ".nojekyll"), ""); // serve the _next/ folder
+// This output is pushed to the gh-pages branch; a Vercel project linked to the repo shouldn't try to build it.
+writeFileSync(path.join(out, "vercel.json"), JSON.stringify({ git: { deploymentEnabled: false } }, null, 2) + "\n");
 
 // PGlite is loaded at runtime from these files (bundling it breaks its WASM loader).
 const pgliteDist = path.join(root, "node_modules/@electric-sql/pglite/dist");
