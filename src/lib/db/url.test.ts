@@ -26,4 +26,12 @@ describe("normalizeDatabaseUrl", () => {
     expect(() => normalizeDatabaseUrl("https://example.com")).toThrow(/postgresql:\/\//);
     expect(() => normalizeDatabaseUrl("postgresql://nohost")).toThrow(/user and password/);
   });
+
+  it("describes common wrong pastes without echoing them", () => {
+    expect(() => normalizeDatabaseUrl("https://kybjxmldykatvsyhyhka.supabase.co")).toThrow(/project URL/);
+    expect(() => normalizeDatabaseUrl("eyJhbGciOiJIUzI1NiJ9.secretpart")).toThrow(/API key/);
+    expect(() => normalizeDatabaseUrl("sb_publishable_abc")).toThrow(/Supabase API key/);
+    expect(() => normalizeDatabaseUrl("hunter2secret")).toThrow(/just a password/);
+    expect(() => normalizeDatabaseUrl("hunter2secret")).not.toThrow(/hunter2/);
+  });
 });

@@ -12,7 +12,7 @@ export function normalizeDatabaseUrl(raw: string, name = "DATABASE_URL"): string
     throw new Error(`${name} still contains [YOUR-PASSWORD]. Replace it (including the brackets) with your Supabase database password.`);
   }
   const scheme = s.match(/^(postgres(?:ql)?:\/\/)/i)?.[1];
-  if (!scheme) throw new Error(`${name} should start with postgresql:// — copy it from Supabase → Connect.`);
+  if (!scheme) throw new Error(`${name} should start with postgresql://, but ${describeWrongValue(s)}. In Supabase, click Connect (top of the project) → "Transaction pooler", and copy the string that starts with postgresql://.`);
 
   const rest = s.slice(scheme.length);
   const at = rest.lastIndexOf("@");
@@ -37,4 +37,17 @@ export function normalizeDatabaseUrl(raw: string, name = "DATABASE_URL"): string
     throw new Error(`${name} isn't a valid connection string (after the password there should be a host like …pooler.supabase.com:6543/postgres).`);
   }
   return fixed;
+}
+
+/** What a wrong value looks like — described, never echoed (it may be a secret). */
+function describeWrongValue(s: string): string {
+  if (!s) return "it is empty";
+  if (/^https?:\/\/[^/]*supabase\.(co|com)/i.test(s)) return "it looks like the Supabase project URL (https://…supabase.co) — that's the API address, not the database connection";
+  if (/^https?:\/\//i.test(s)) return "it looks like a web address (https://…)";
+  if (/^eyJ/.test(s)) return "it looks like an API key (a long eyJ… token), not a connection string";
+  if (/^sb_(publishable|secret)_/i.test(s)) return "it looks like a Supabase API key (sb_…), not a connection string";
+  if (/^(host|user|port|dbname|database)\s*[:=]/im.test(s)) return "it looks like the separate host/user/port fields — use the single connection-string form instead";
+  if (/^psql\s/i.test(s)) return "it starts with the psql command — copy only the postgresql://… part";
+  if (/^[^\s:/@]+$/.test(s) && s.length < 80) return "it looks like just a password";
+  return `it starts with something else (${s.length} characters)`;
 }
